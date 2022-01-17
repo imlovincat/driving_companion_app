@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+
 
 class Monitor extends StatefulWidget {
   @override
-  Journey createState() => new Journey();
+  Journey createState() => Journey();
 }
 
 class Journey extends State<Monitor> {
-  int count = 0;
+  var latitudeMessage;
+  var longitudeMessage;
+  var speedInMps;
+  var buttonText = "START";
+  bool pressAttention = false;
 
-  void incrementCounter() {
-    setState(() {
-      count++;
-    });
+  void getCurrentLocation() async{
+    var position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    latitudeMessage = position.latitude;
+    longitudeMessage = position.longitude;
+    speedInMps = position.speed;
   }
 
   @override
@@ -22,11 +29,46 @@ class Journey extends State<Monitor> {
           title: null,
         ),
         body: Center(
-          child: TextButton(
-            onPressed: () => {
-              incrementCounter()
-            },
-            child: Text('Button Clicks - $count'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                "Speed: $speedInMps",
+                style: TextStyle(color: Colors.black, fontSize: 24),
+              ),
+              Text(
+                  "Latitude: $latitudeMessage",
+                  style: TextStyle(color: Colors.black, fontSize: 24),
+              ),
+              Text(
+                "Longitude: $longitudeMessage",
+                style: TextStyle(color: Colors.black, fontSize: 24),
+              ),
+              Container(
+                // set width equal to height to make a square
+                  width: 150,
+                  height: 150,
+                  child: RaisedButton(
+                    color: pressAttention ? Colors.green : Colors.red,
+                    shape: RoundedRectangleBorder(
+                      // set the value to a very big number like 100, 1000...
+                        borderRadius: BorderRadius.circular(100)),
+                    child: Text(
+                            buttonText,
+                            style: TextStyle(color: Colors.white, fontSize: 30),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        pressAttention = !pressAttention;
+                        buttonText = "START";
+                        getCurrentLocation();
+                      });
+                    },
+                  )
+              )
+            ],
+
           ),
         ),
       ),
