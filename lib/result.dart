@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
 class Result extends StatefulWidget {
 
@@ -10,13 +11,12 @@ class Result extends StatefulWidget {
 }
 
 class Report extends State<Result> {
-  var message1 = "";
-  var message2 = "Test";
-  var message3 = "Test";
 
   List<dynamic> list = [];
-  var timeOfSharpAccelerated = 0;
-  var timeOfSharpDecelerated = 0;
+  var drivingScore = 0;
+  var tripDistance = "0";
+  var IndexOfSharpAccelerated = 0;
+  var IndexOfSharpDecelerated = 0;
 
   //https://www.quartix.com/en-ie/blog/driver-score-calculations/
   //Calculating the driver score
@@ -35,9 +35,7 @@ class Report extends State<Result> {
     int tripTotalSecond = list.length;
     int sharpAccelerated = getSharpAccelerated(list);
     int sharpDecelerated = getSharpDecelerated(list);
-    double deduction =  (sharpAccelerated + sharpDecelerated) / tripTotalSecond;
-    int deductionToInt = deduction.toInt();
-    drivingScore = drivingScore - deductionToInt;
+    drivingScore = drivingScore - ((sharpAccelerated + sharpDecelerated) ~/ 2);
     return drivingScore;
   }
 
@@ -112,6 +110,28 @@ class Report extends State<Result> {
     return result;
   }
 
+  int getTripDistance(List<dynamic> list) {
+    var distance = 0.0;
+    var totalDistance = 0.0;
+    var currentlatitude = 0.0;
+    var currentlongitude = 0.0;
+    var lastlatitude = 0.0;
+    var lastlongitude = 0.0;
+    for (var i = 10; i < list.length -2; i++) {
+      lastlatitude = list[i][2].latitude;
+      lastlongitude = list[i][2].longitude;
+      currentlatitude = list[i+1][2].latitude;
+      currentlongitude = list[i+1][2].longitude;
+      if (lastlatitude != 0.0 || lastlongitude != 0.0 || currentlatitude != 0.0 || currentlongitude != 0.0) {
+        distance = Geolocator.distanceBetween(
+            lastlatitude,lastlongitude,
+            currentlatitude,currentlongitude
+        );
+        totalDistance += distance;
+      }
+    }
+    return totalDistance.toInt();
+  }
 
 
   @override
@@ -119,7 +139,10 @@ class Report extends State<Result> {
 
     list = widget.trip;
 
-    message1 = list.length.toString();
+    drivingScore = getDrivingScore(list);
+    IndexOfSharpAccelerated = getSharpAccelerated(list);
+    IndexOfSharpDecelerated = getSharpDecelerated(list);
+    tripDistance = getTripDistance(list).toString();
 
     return MaterialApp(
       home: Scaffold(
@@ -136,15 +159,19 @@ class Report extends State<Result> {
                 style: TextStyle(color: Colors.black, fontSize: 24),
               ),
               Text(
-                message1,
+                "Driving Score: $drivingScore",
                 style: TextStyle(color: Colors.black, fontSize: 24),
               ),
               Text(
-                message2,
+                "Sharp Acceleration: $IndexOfSharpAccelerated",
                 style: TextStyle(color: Colors.black, fontSize: 24),
               ),
               Text(
-                message3,
+                "Sharp Deceleration: $IndexOfSharpDecelerated",
+                style: TextStyle(color: Colors.black, fontSize: 24),
+              ),
+              Text(
+                "Distance: $tripDistance",
                 style: TextStyle(color: Colors.black, fontSize: 24),
               ),
               Container(
