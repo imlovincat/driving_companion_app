@@ -45,6 +45,9 @@ class Report extends State<Result> {
   //level3: + 6 mph per second (10 kph)
   //level5: + 7 mph per second (12 kph)
   //level6: + 8 mph per second (13 kph)
+  //the sum of all the acceleration incidents,
+  //each multiplied by their severity and finally divided by the driving time in hours.
+  // Calculating it in this way means that no drivers are penalised for driving more or less than any other driver.
   int getSharpAccelerated(List<dynamic> list) {
 
     var level1 = 0;
@@ -84,6 +87,9 @@ class Report extends State<Result> {
   //level3: - 9 mph per second (14 kph)
   //level5: - 11 mph per second (18 kph)
   //level6: - 13 mph per second (21 kph)
+  //the sum of all braking incidents, worked out in a similar way,
+  // except that the levels of speed change are slightly different,
+  // as are the severity weightings, as excessive braking is considered to be more of a risk factor.
   int getSharpDecelerated(List<dynamic> list) {
     var level1 = 0;
     var level2 = 0;
