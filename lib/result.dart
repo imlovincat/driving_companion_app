@@ -52,6 +52,7 @@ class Report extends State<Result> {
     var level3 = 0;
     var level4 = 0;
     var level5 = 0;
+    var time = 0;
     var result = 0;
 
     for (var i = 0; i < list.length -2; i++) {
@@ -72,6 +73,8 @@ class Report extends State<Result> {
       }
     }
     result = level1 + (level2 * 2) + (level3 * 3) + (level4 * 4) + (level5 * 5);
+    time = list.length ~/3600 + 1;
+    result = result ~/ time;
     return result;
   }
 
@@ -87,6 +90,7 @@ class Report extends State<Result> {
     var level3 = 0;
     var level4 = 0;
     var level5 = 0;
+    var time = 0;
     var result = 0;
 
     for (var i = 0; i < list.length -2; i++) {
@@ -107,6 +111,8 @@ class Report extends State<Result> {
       }
     }
     result = level1 + (level2 * 2) + (level3 * 3) + (level4 * 4) + (level5 * 5);
+    time = list.length ~/3600 + 1;
+    result = result ~/ time;
     return result;
   }
 
