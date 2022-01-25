@@ -75,9 +75,8 @@ class Report extends State<Result> {
         level1++;
       }
     }
-    result = level1 + (level2 * 2) + (level3 * 3) + (level4 * 4) + (level5 * 5);
     time = list.length ~/3600 + 1;
-    result = result ~/ time;
+    result = (level1 + (level2 * 2) + (level3 * 3) + (level4 * 4) + (level5 * 5)) ~/time;
     return result;
   }
 
@@ -116,9 +115,8 @@ class Report extends State<Result> {
         level1++;
       }
     }
-    result = level1 + (level2 * 2) + (level3 * 3) + (level4 * 4) + (level5 * 5);
     time = list.length ~/3600 + 1;
-    result = result ~/ time;
+    result = (level1 + (level2 * 2) + (level3 * 3) + (level4 * 4) + (level5 * 5)) ~/time;
     return result;
   }
 
