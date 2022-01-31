@@ -28,8 +28,6 @@ class Journey extends State<Monitor> {
   var mapTilt = 0.0;
   var mapHeading = 0.0;
 
-  var currentZoomLevel;
-
   Color polyColor = Color.fromARGB(255, 153, 204, 255);
   bool pressAttention = false;
   bool backgroundChange = false;
@@ -211,9 +209,59 @@ class Journey extends State<Monitor> {
     ));
   }
 
-  setSpeedMarker() {
+  setSpeedMarker() async {
 
     speedColor = Color.fromARGB(255, 0, 0, 0);
+
+    BitmapDescriptor sharpAccelerationLevel1_Icon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(),
+      "assets/images/sharpAcceleration1.png",
+    );
+
+    BitmapDescriptor sharpAccelerationLevel2_Icon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(),
+      "assets/images/sharpAcceleration2.png",
+    );
+
+    BitmapDescriptor sharpAccelerationLevel3_Icon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(),
+      "assets/images/sharpAcceleration3.png",
+    );
+
+    BitmapDescriptor sharpAccelerationLevel4_Icon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(),
+      "assets/images/sharpAcceleration4.png",
+    );
+
+    BitmapDescriptor sharpAccelerationLevel5_Icon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(),
+      "assets/images/sharpAcceleration5.png",
+    );
+
+    BitmapDescriptor sharpDecelerationLevel1_Icon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(),
+      "assets/images/sharpDeceleration1.png",
+    );
+
+    BitmapDescriptor sharpDecelerationLevel2_Icon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(),
+      "assets/images/sharpDeceleration2.png",
+    );
+
+    BitmapDescriptor sharpDecelerationLevel3_Icon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(),
+      "assets/images/sharpDeceleration3.png",
+    );
+
+    BitmapDescriptor sharpDecelerationLevel4_Icon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(),
+      "assets/images/sharpDeceleration4.png",
+    );
+
+    BitmapDescriptor sharpDecelerationLevel5_Icon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(),
+      "assets/images/sharpDeceleration5.png",
+    );
 
     if (trip.length > 1) {
       var currentSpeed = trip.elementAt(trip.length - 1)[1];
@@ -224,12 +272,13 @@ class Journey extends State<Monitor> {
         if (currentSpeed - lastSpeed >= 13) {
           markers.add(Marker( //add first marker
             markerId: MarkerId(position.toString()),
+            draggable: false,
             position: LatLng(position.latitude,position.longitude), //position of marker
             infoWindow: InfoWindow( //popup info
               title: 'Accelerate L5 ',
               snippet: 'over >= 13',
             ),
-            icon: BitmapDescriptor.defaultMarker, //Icon for Marker
+            icon: sharpAccelerationLevel5_Icon, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 255, 153, 0);
@@ -238,12 +287,13 @@ class Journey extends State<Monitor> {
 
           markers.add(Marker( //add first marker
             markerId: MarkerId(position.toString()),
+            draggable: false,
             position: LatLng(position.latitude,position.longitude), //position of marker
             infoWindow: InfoWindow( //popup info
               title: 'Accelerate L4 ',
               snippet: 'over >= 12',
             ),
-            icon: BitmapDescriptor.defaultMarker, //Icon for Marker
+            icon: sharpAccelerationLevel4_Icon, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 139, 101, 6);
@@ -252,12 +302,13 @@ class Journey extends State<Monitor> {
 
           markers.add(Marker( //add first marker
             markerId: MarkerId(position.toString()),
+            draggable: false,
             position: LatLng(position.latitude,position.longitude), //position of marker
             infoWindow: InfoWindow( //popup info
               title: 'Accelerate L3 ',
               snippet: 'over >= 10',
             ),
-            icon: BitmapDescriptor.defaultMarker, //Icon for Marker
+            icon: sharpAccelerationLevel3_Icon, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 113, 63, 0);
@@ -266,12 +317,14 @@ class Journey extends State<Monitor> {
 
           markers.add(Marker( //add first marker
             markerId: MarkerId(position.toString()),
+            draggable: false,
             position: LatLng(position.latitude,position.longitude), //position of marker
             infoWindow: InfoWindow( //popup info
               title: 'Accelerate L2 ',
               snippet: 'over >= 8',
             ),
-            icon: BitmapDescriptor.defaultMarker, //Icon for Marker
+            icon: sharpAccelerationLevel2_Icon,
+            //icon: BitmapDescriptor.defaultMarker, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 83, 47, 0);
@@ -280,12 +333,13 @@ class Journey extends State<Monitor> {
 
           markers.add(Marker( //add first marker
             markerId: MarkerId(position.toString()),
+            draggable: false,
             position: LatLng(position.latitude,position.longitude), //position of marker
             infoWindow: InfoWindow( //popup info
               title: 'Accelerate L1 ',
               snippet: 'over >= 7',
             ),
-            icon: BitmapDescriptor.defaultMarker, //Icon for Marker
+            icon: sharpAccelerationLevel1_Icon, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 56, 34, 0);
@@ -297,12 +351,13 @@ class Journey extends State<Monitor> {
 
           markers.add(Marker( //add first marker
             markerId: MarkerId(position.toString()),
+            draggable: false,
             position: LatLng(position.latitude,position.longitude), //position of marker
             infoWindow: InfoWindow( //popup info
               title: 'Decelerate L5 ',
               snippet: 'over >= 21',
             ),
-            icon: BitmapDescriptor.defaultMarker, //Icon for Marker
+            icon: sharpDecelerationLevel5_Icon, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 204, 0, 0);
@@ -311,12 +366,13 @@ class Journey extends State<Monitor> {
 
           markers.add(Marker( //add first marker
             markerId: MarkerId(position.toString()),
+            draggable: false,
             position: LatLng(position.latitude,position.longitude), //position of marker
             infoWindow: InfoWindow( //popup info
               title: 'Decelerate L4 ',
               snippet: 'over >= 18',
             ),
-            icon: BitmapDescriptor.defaultMarker, //Icon for Marker
+            icon: sharpDecelerationLevel4_Icon, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 200, 0, 0);
@@ -325,12 +381,13 @@ class Journey extends State<Monitor> {
 
           markers.add(Marker( //add first marker
             markerId: MarkerId(position.toString()),
+            draggable: false,
             position: LatLng(position.latitude,position.longitude), //position of marker
             infoWindow: InfoWindow( //popup info
               title: 'Decelerate L3 ',
               snippet: 'over >= 14',
             ),
-            icon: BitmapDescriptor.defaultMarker, //Icon for Marker
+            icon: sharpDecelerationLevel3_Icon, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 150, 0, 0);
@@ -339,12 +396,13 @@ class Journey extends State<Monitor> {
 
           markers.add(Marker( //add first marker
             markerId: MarkerId(position.toString()),
+            draggable: false,
             position: LatLng(position.latitude,position.longitude), //position of marker
             infoWindow: InfoWindow( //popup info
               title: 'Decelerate L2 ',
               snippet: 'over >= 9',
             ),
-            icon: BitmapDescriptor.defaultMarker, //Icon for Marker
+            icon: sharpDecelerationLevel2_Icon, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 100, 0, 0);
@@ -353,12 +411,13 @@ class Journey extends State<Monitor> {
 
           markers.add(Marker( //add first marker
             markerId: MarkerId(position.toString()),
+            draggable: false,
             position: LatLng(position.latitude,position.longitude), //position of marker
             infoWindow: InfoWindow( //popup info
               title: 'Decelerate L1 ',
               snippet: 'over >= 7',
             ),
-            icon: BitmapDescriptor.defaultMarker, //Icon for Marker
+            icon: sharpDecelerationLevel1_Icon, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 50, 0, 0);
