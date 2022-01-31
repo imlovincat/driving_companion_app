@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:fl_chart/fl_chart.dart';
+//import 'chart/line_chart.dart';
+//import 'chart_container.dart';
+
 
 class Result extends StatefulWidget {
 
   List<dynamic> trip = [];
   Result(this.trip);
 
+
   @override
   Report createState() => Report();
 }
+
 
 class Report extends State<Result> {
 
@@ -17,6 +23,11 @@ class Report extends State<Result> {
   var tripDistance = "0";
   var IndexOfSharpAccelerated = 0;
   var IndexOfSharpDecelerated = 0;
+  double x_axis = 0.0;
+  double y_axis = 0.0;
+  int maxSpeed = 0;
+  int avgSpeed = 0;
+  String totalTime ="00:00:00";
 
   //https://www.quartix.com/en-ie/blog/driver-score-calculations/
   //Calculating the driver score
@@ -80,7 +91,7 @@ class Report extends State<Result> {
     return result;
   }
 
-  //level of accelerated
+  //level of decelerated
   //level1: - 5 mph per second (7 kph)
   //level2: - 7  mph per second (9 kph)
   //level3: - 9 mph per second (14 kph)
@@ -143,52 +154,223 @@ class Report extends State<Result> {
     return totalDistance.toInt();
   }
 
+  List<FlSpot> getLineChartValue(List<dynamic> list) {
+    List<FlSpot> spot = [];
+    double index;
+    double value;
+    for (var i = 0; i < list.length; i++) {
+      index = i.toDouble();
+      value = list[i][1].toDouble();
+      spot.add(FlSpot(index,value));
+    }
+    return spot;
+  }
+
+  int getMaxSpeed(List<dynamic> list) {
+    var maxSpeed = 0;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i][1] > maxSpeed) {
+        maxSpeed = list[i][1];
+      }
+    }
+    return maxSpeed;
+  }
+
+  int getAvgSpeed(List<dynamic> list) {
+    double sumOfSpeed = 0;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i][1] > maxSpeed) {
+        sumOfSpeed += list[i][1];
+      }
+    }
+
+    return sumOfSpeed ~/ list.length;
+  }
+
+  String getComment(int drivingScore) {
+    if (drivingScore >= 90) {
+      return "Excellent";
+    }
+    else if (drivingScore >= 80) {
+      return "Very Good";
+    }
+    else if (drivingScore >= 70) {
+      return "Good";
+    }
+    else if (drivingScore >= 60) {
+      return "Average";
+    }
+    else if (drivingScore >= 50) {
+      return "Fair";
+    }
+    else if (drivingScore >= 40) {
+      return "Poor";
+    }
+    else {
+      return "Very Poor";
+    }
+
+  }
 
   @override
-  Widget build(BuildContext context) {
-
+  void initState() {
+    super.initState();
     list = widget.trip;
-
     drivingScore = getDrivingScore(list);
     IndexOfSharpAccelerated = getSharpAccelerated(list);
     IndexOfSharpDecelerated = getSharpDecelerated(list);
     tripDistance = getTripDistance(list).toString();
+    maxSpeed = getMaxSpeed(list);
+    avgSpeed = getAvgSpeed(list);
+    totalTime = list.last[0];
+    //x_axis = list.length -1.toDouble();
+    //y_axis = 20.toDouble();
+  }
+
+  @override
+  Widget build(BuildContext context) {
 
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: null,
+        appBar: PreferredSize(
+          // hold space for mobile phone original topbar and ignore AppBar as its size is 0
+            preferredSize: Size(double.infinity, 0),
+            child: AppBar(
+              backgroundColor: Colors.black,
+              elevation: 0, //remove shadow effect
+            )
         ),
         body: Center(
+
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                "Length of List",
+                "Your Journey Report",
                 style: TextStyle(color: Colors.black, fontSize: 24),
               ),
+
+
+              Container(
+                padding: EdgeInsets.all(10),
+                width: 300,
+                height: 200,
+                child: LineChart(LineChartData(
+
+                  //minX: 0,
+                  //minY: 0,
+                  //maxX: x_axis,
+                  //maxY: y_axis,
+
+                    borderData: FlBorderData(show: false),
+
+                    titlesData: FlTitlesData(
+                      topTitles: SideTitles(
+                        showTitles: false,
+                      ),
+                      rightTitles: SideTitles(
+                        showTitles: false,
+                      ),
+                      leftTitles: SideTitles(
+                        showTitles: false,
+                        //interval: 5,
+                      ),
+                      bottomTitles: SideTitles(
+                        showTitles: false,
+                        //interval: 5,
+                      ),
+
+                    ),
+
+                    axisTitleData: FlAxisTitleData(
+                      leftTitle: AxisTitle(
+                          showTitle: true,
+                          titleText: 'Speed (km/h)',
+                          margin: 10
+                      ),
+                      bottomTitle: AxisTitle(
+                        showTitle: true,
+                        margin: 10,
+
+                        titleText: 'Time',
+                      )
+                    ),
+
+                    gridData: FlGridData(
+                      show: false,
+                    ),
+
+                    lineBarsData: [
+                      LineChartBarData(
+                          isCurved: true,
+                          dotData: FlDotData(
+                            show: false,
+                          ),
+                          spots: getLineChartValue(list)
+                      )
+                    ]
+                  ),
+                ),
+              ),
               Text(
-                "Driving Score: $drivingScore",
-                style: TextStyle(color: Colors.black, fontSize: 24),
+                "Driving Score",
+                style: TextStyle(color: Colors.black, fontSize: 18),
+              ),
+              Text(
+                drivingScore.toString(),
+                style: TextStyle(color: Colors.black, fontSize: 80),
+              ),
+              Text(
+                getComment(drivingScore),
+                style: TextStyle(color: Colors.black, fontSize: 30),
+              ),
+              Text(
+                "Total Time: $totalTime",
+                style: TextStyle(color: Colors.black, fontSize: 12),
+              ),
+              Text(
+                "Total Distance: $tripDistance meters",
+                style: TextStyle(color: Colors.black, fontSize: 12),
+              ),
+
+              Text(
+                "Max Speed: $maxSpeed",
+                style: TextStyle(color: Colors.black, fontSize: 12),
+              ),
+              Text(
+                "Avg Speed: $avgSpeed",
+                style: TextStyle(color: Colors.black, fontSize: 12),
               ),
               Text(
                 "Sharp Acceleration: $IndexOfSharpAccelerated",
-                style: TextStyle(color: Colors.black, fontSize: 24),
+                style: TextStyle(color: Colors.black, fontSize: 12),
               ),
               Text(
                 "Sharp Deceleration: $IndexOfSharpDecelerated",
-                style: TextStyle(color: Colors.black, fontSize: 24),
+                style: TextStyle(color: Colors.black, fontSize: 12),
               ),
-              Text(
-                "Distance: $tripDistance",
-                style: TextStyle(color: Colors.black, fontSize: 24),
-              ),
-              Container(
-                // set width equal to height to make a square
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  FlatButton(
+                    child: Text('Save', style: TextStyle(fontSize: 20.0),),
+                    color: Colors.red,
+                    textColor: Colors.white,
+                    onPressed: () {},
+                  ),
+                  FlatButton(
+                    child: Text('No', style: TextStyle(fontSize: 20.0),),
+                    color: Colors.grey,
+                    textColor: Colors.black,
+                    onPressed: () {},
+                  )
+                ],
               )
+
             ],
           ),
+
         ),
       ),
     );
