@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "707859877950",
+    "project_id": "endless-mariner-338000",
+    "storage_bucket": "endless-mariner-338000.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:707859877950:android:80b294faec419dac67016f",
+        "android_client_info": {
+          "package_name": "com.example.fyp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "707859877950-4j6v594kviitofgnac51gp3qo3p48usr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDXzOfbEY4TL4AibizsylXgWP6VN5AgPk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "707859877950-4j6v594kviitofgnac51gp3qo3p48usr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -284,17 +284,17 @@ class Report extends State<Result> {
                     ),
 
                     axisTitleData: FlAxisTitleData(
-                      leftTitle: AxisTitle(
+                        leftTitle: AxisTitle(
+                            showTitle: true,
+                            titleText: 'Speed (km/h)',
+                            margin: 10
+                        ),
+                        bottomTitle: AxisTitle(
                           showTitle: true,
-                          titleText: 'Speed (km/h)',
-                          margin: 10
-                      ),
-                      bottomTitle: AxisTitle(
-                        showTitle: true,
-                        margin: 10,
+                          margin: 10,
 
-                        titleText: 'Time',
-                      )
+                          titleText: 'Time',
+                        )
                     ),
 
                     gridData: FlGridData(
@@ -310,7 +310,7 @@ class Report extends State<Result> {
                           spots: getLineChartValue(list)
                       )
                     ]
-                  ),
+                ),
                 ),
               ),
               Text(

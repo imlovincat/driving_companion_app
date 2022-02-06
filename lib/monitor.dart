@@ -148,7 +148,6 @@ class Journey extends State<Monitor> {
       speedInMps = position.speed * speedFixing;
       speedInKps = speedInMps * 1.60934;
       currentSpeed = speedInKps.toInt();
-
       distance = Geolocator.distanceBetween(
         lastknownLatiudeMessage,lastknownlongitudeMessage,
         latitudeMessage,longitudeMessage
@@ -185,12 +184,10 @@ class Journey extends State<Monitor> {
       var currentlongitude = trip.elementAt(trip.length - 1)[2].longitude;
       var lastlatitude = trip.elementAt(trip.length - 2)[2].latitude;
       var lastlongitude = trip.elementAt(trip.length - 2)[2].longitude;
-
       var distance = Geolocator.distanceBetween(
           lastlatitude,lastlongitude,
           currentlatitude,currentlongitude
       );
-
       totalDistance += distance.toInt();
     }
   }*/
@@ -201,10 +198,10 @@ class Journey extends State<Monitor> {
 
     controller.animateCamera(CameraUpdate.newCameraPosition(
         CameraPosition(
-          target: LatLng(latitudeMessage, longitudeMessage),
-          zoom: mapZoom,
-          tilt: mapTilt,
-          bearing: position.heading
+            target: LatLng(latitudeMessage, longitudeMessage),
+            zoom: mapZoom,
+            tilt: mapTilt,
+            bearing: position.heading
         )
     ));
   }

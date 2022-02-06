@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'monitor.dart';
 import 'geolocator.dart';
 import 'review.dart';
+import 'register.dart';
+import 'login.dart';
 
 class Menu extends StatelessWidget {
   @override
@@ -60,8 +62,11 @@ class Menu extends StatelessWidget {
                     )
                 ),
                 onPressed: () {
-                  //Navigator.push(
-                  //context, MaterialPageRoute(builder: (context) => Menu()));
+                  Navigator.push(
+                    context, MaterialPageRoute(
+                        builder: (context) => RegisterPage()
+                    )
+                  );
                 },
               ),
               TextButton(
@@ -72,12 +77,12 @@ class Menu extends StatelessWidget {
                         fontSize: 24
                     )
                 ),
-                onPressed: () => {
+                onPressed: () {
                   Navigator.push(
-                    context, MaterialPageRoute(
-                      builder: (context) => Review()
-                    )
+                      context, MaterialPageRoute(
+                      builder: (context) => SignInPage()
                   )
+                  );
                 },
               ),
               TextButton(
