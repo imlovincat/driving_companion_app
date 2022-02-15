@@ -1,3 +1,10 @@
+/**
+ * Chi Ieong Ng C00223421
+ * Software Development final year project
+ * since 2021/10
+ */
+
+
 import 'package:flutter/material.dart';
 //import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
