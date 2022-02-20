@@ -1,10 +1,3 @@
-/**
- * Chi Ieong Ng C00223421
- * Software Development final year project
- * since 2021/10
- */
-
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
@@ -13,7 +6,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter/services.dart';
 import 'menu.dart';
-
 
 class Monitor extends StatefulWidget {
   @override
@@ -97,7 +89,7 @@ class Journey extends State<Monitor> {
       watch.reset();
       Navigator.push(
           context, MaterialPageRoute(
-          builder: (context) => Result('monitor',trip))
+          builder: (context) => Result("monitor",trip))
       );
     }
   }
@@ -167,8 +159,8 @@ class Journey extends State<Monitor> {
    */
 
   getGeoSpeed() {
-    setState(() async {
-      speedPos= await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    setState(() {
+      speedPos= Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       speedInMps = speedPos.speed * speedFixing;
       speedInKps = speedInMps * 1.60934;
       speedToInt = speedInKps.toInt();
@@ -176,7 +168,7 @@ class Journey extends State<Monitor> {
   }
 
   getGeoLocation() {
-    setState(() async {
+    setState(() {
       positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
               (Position pos) {
             latitudeMessage = pos.latitude;
@@ -435,11 +427,6 @@ class Journey extends State<Monitor> {
   @override
   void initState() {
     super.initState();
-    /*
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [
-      SystemUiOverlay.top
-    ]);//disable android bottom bar
-    */
     checkGPSPermission();
     position = Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     init = Timer.periodic(Duration(milliseconds: 1000), (Timer t) {
@@ -457,128 +444,128 @@ class Journey extends State<Monitor> {
 
     return WillPopScope (
         onWillPop: () async {
-      return Future.value(false);
-    },
-    child:MaterialApp(
-      home: Scaffold(
-        backgroundColor: backgroundChange ? Color.fromARGB(255, 255, 240, 240) : Color.fromARGB(255, 240, 255, 240),
-        appBar: PreferredSize(
-            preferredSize: Size(double.infinity, 60),
-            child: AppBar(
-              title: Text('Driving Monitor'),
-              centerTitle: true,
-              backgroundColor: Colors.black,
-              //leading: Icon(Icons.account_circle_rounded),
-              leading: IconButton(
-                onPressed: () {
-                  Navigator.push(
-                      context, MaterialPageRoute(
-                      builder: (context) => Menu()
-                  ));
-                },
-                icon: Icon(Icons.home_outlined),
-              ),
-              elevation: 0, //remove shadow effect
-            )
-        ),
-
-        body: Center(
-
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.center,
-
-            children: [
-              Container(
-                width: 300,
-                height: 400,
-                padding: EdgeInsets.only(
-                  top:18,
-                  bottom:5,
-                ),
-                child:
-                GoogleMap(
-                  myLocationEnabled: true,
-                  compassEnabled: false,
-                  tiltGesturesEnabled: false,
-                  mapType: MapType.normal,
-                  myLocationButtonEnabled: false,
-                  zoomControlsEnabled: false,
-                  zoomGesturesEnabled: true,
-                  scrollGesturesEnabled: false,
-                  rotateGesturesEnabled: false,
-
-
-                  polylines: _polylines,
-                  markers: markers,
-
-                  initialCameraPosition: CameraPosition(
-                    target: LatLng(position.latitude, position.longitude),
-                    zoom: mapZoom, //14.4746
-                    tilt: mapTilt,
-                    bearing: position.heading,
+          return Future.value(false);
+        },
+        child: MaterialApp(
+          home: Scaffold(
+            backgroundColor: backgroundChange ? Color.fromARGB(255, 255, 240, 240) : Color.fromARGB(255, 240, 255, 240),
+            appBar: PreferredSize(
+                preferredSize: Size(double.infinity, 60),
+                child: AppBar(
+                  title: Text('Driving Monitor'),
+                  centerTitle: true,
+                  backgroundColor: Colors.black,
+                  //leading: Icon(Icons.account_circle_rounded),
+                  leading: IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context, MaterialPageRoute(
+                          builder: (context) => Menu()
+                      ));
+                    },
+                    icon: Icon(Icons.home_outlined),
                   ),
+                  elevation: 0, //remove shadow effect
+                )
+            ),
 
-                  /*
+            body: Center(
+
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+
+                children: [
+                  Container(
+                    width: 300,
+                    height: 400,
+                    padding: EdgeInsets.only(
+                      top:18,
+                      bottom:5,
+                    ),
+                    child:
+                    GoogleMap(
+                      myLocationEnabled: true,
+                      compassEnabled: false,
+                      tiltGesturesEnabled: false,
+                      mapType: MapType.normal,
+                      myLocationButtonEnabled: false,
+                      zoomControlsEnabled: false,
+                      zoomGesturesEnabled: true,
+                      scrollGesturesEnabled: false,
+                      rotateGesturesEnabled: false,
+
+
+                      polylines: _polylines,
+                      markers: markers,
+
+                      initialCameraPosition: CameraPosition(
+                        target: LatLng(position.latitude, position.longitude),
+                        zoom: mapZoom, //14.4746
+                        tilt: mapTilt,
+                        bearing: position.heading,
+                      ),
+
+                      /*
                     onCameraMove:(CameraPosition cameraPosition){
                     //print(cameraPosition.zoom);
                   },*/
 
-                  onMapCreated: (GoogleMapController controller) {
-                    _controller.complete(controller);
+                      onMapCreated: (GoogleMapController controller) {
+                        _controller.complete(controller);
 
-                  },
-                ),
-              ),
+                      },
+                    ),
+                  ),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    speedToInt.toString(),
-                    style: TextStyle(color: speedColor, fontSize: 100),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        speedToInt.toString(),
+                        style: TextStyle(color: speedColor, fontSize: 100),
+                      ),
+                      Text(
+                        " km/h",
+                        style: TextStyle(color: speedColor, fontSize: 24),
+                      ),
+                    ],
                   ),
                   Text(
-                    " km/h",
-                    style: TextStyle(color: speedColor, fontSize: 24),
+                    elapsedTime,
+                    style: TextStyle(color: Colors.black, fontSize: 24),
+                  ),
+                  Text(
+                    "",
+                    style: TextStyle(color: Colors.black, fontSize: 24),
+                  ),
+                  Container(
+                    // set width equal to height to make a square
+                      width: 100,
+                      height: 100,
+                      child: RaisedButton(
+                        color: pressAttention ? Colors.red : Colors.green,
+                        shape: RoundedRectangleBorder(
+                          // set the value to a very big number like 100, 1000...
+                            borderRadius: BorderRadius.circular(100)),
+                        child: Text(
+                          buttonText,
+                          style: TextStyle(color: Colors.white, fontSize: 20),
+                        ),
+                        onPressed: () {
+                          startOrStop();
+                        },
+                      )
+                  ),
+                  Text(
+                    "",
+                    style: TextStyle(color: Colors.black, fontSize: 24),
                   ),
                 ],
               ),
-              Text(
-                elapsedTime,
-                style: TextStyle(color: Colors.black, fontSize: 24),
-              ),
-              Text(
-                "",
-                style: TextStyle(color: Colors.black, fontSize: 24),
-              ),
-              Container(
-                // set width equal to height to make a square
-                  width: 100,
-                  height: 100,
-                  child: RaisedButton(
-                    color: pressAttention ? Colors.red : Colors.green,
-                    shape: RoundedRectangleBorder(
-                      // set the value to a very big number like 100, 1000...
-                        borderRadius: BorderRadius.circular(100)),
-                    child: Text(
-                      buttonText,
-                      style: TextStyle(color: Colors.white, fontSize: 20),
-                    ),
-                    onPressed: () {
-                      startOrStop();
-                    },
-                  )
-              ),
-              Text(
-                "",
-                style: TextStyle(color: Colors.black, fontSize: 24),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
-    ));
+        ));
   }
   @override
   void dispose() {

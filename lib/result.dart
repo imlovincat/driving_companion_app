@@ -1,10 +1,3 @@
-/**
- * Chi Ieong Ng C00223421
- * Software Development final year project
- * since 2021/10
- */
-
-
 import 'package:flutter/material.dart';
 //import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,11 +7,13 @@ import 'package:geolocator/geolocator.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:convert';
 import 'menu.dart';
+import 'review.dart';
 
 class Result extends StatefulWidget {
 
-  List<dynamic> trip = [];
-  Result(this.trip);
+  final List<dynamic> trip;
+  final String mode;
+  Result(this.mode,this.trip);
   @override
   Report createState() => Report();
 }
@@ -63,9 +58,9 @@ class Report extends State<Result> {
     }
 
     //if total time less then 1 minutes or idle time takes up half of driving time
-    if (list.length < 60 || count < list.length ~/ 2) {
-      drivingScore = 0;
-    }
+    //if (list.length < 60 || count < list.length ~/ 2) {
+    //  drivingScore = 0;
+    //}
 
     //reduction discount for long-distance driving
     int tripTotalSecond = count;
@@ -76,7 +71,7 @@ class Report extends State<Result> {
     else if (tripTotalSecond ~/ 3600 > 2) {
       reductionDiscount = 0.8;
     }
-    else if (tripTotalSecond ~/ 3600 > 2) {
+    else if (tripTotalSecond ~/ 3600 > 3) {
       reductionDiscount = 0.7;
     }
 
@@ -96,11 +91,11 @@ class Report extends State<Result> {
   }
 
   //level of accelerated
-  //level1: + 4 mph per second (7 kph)
+  //level1: + 4 mph per second (6 kph)
   //level2: + 5 mph per second (8 kph)
   //level3: + 6 mph per second (10 kph)
   //level5: + 7 mph per second (12 kph)
-  //level6: + 8 mph per second (13 kph)
+  //level6: + 8 mph per second (14 kph)
   //the sum of all the acceleration incidents,
   //each multiplied by their severity and finally divided by the driving time in hours.
   // Calculating it in this way means that no drivers are penalised for driving more or less than any other driver.
@@ -114,7 +109,7 @@ class Report extends State<Result> {
     var result = 0;
 
     for (var i = 0; i < list.length -1; i++) {
-      if (list[i+1][1] - list[i][1]  >= 13) {
+      if (list[i+1][1] - list[i][1]  >= 14) {
         level5++;
       }
       else if (list[i+1][1] - list[i][1]  >= 12) {
@@ -126,7 +121,7 @@ class Report extends State<Result> {
       else if (list[i+1][1] - list[i][1]  >= 8) {
         level2++;
       }
-      else if (list[i+1][1] - list[i][1]  >= 7) {
+      else if (list[i+1][1] - list[i][1]  >= 6) {
         level1++;
       }
     }
@@ -138,8 +133,8 @@ class Report extends State<Result> {
   //level of decelerated
   //level1: - 5 mph per second (7 kph)
   //level2: - 7  mph per second (9 kph)
-  //level3: - 9 mph per second (14 kph)
-  //level5: - 11 mph per second (18 kph)
+  //level3: - 9 mph per second (13 kph)
+  //level5: - 11 mph per second (17 kph)
   //level6: - 13 mph per second (21 kph)
   //the sum of all braking incidents, worked out in a similar way,
   // except that the levels of speed change are slightly different,
@@ -156,10 +151,10 @@ class Report extends State<Result> {
       if (list[i][1] - list[i+1][1] >= 21) {
         level5++;
       }
-      else if (list[i][1] - list[i+1][1] >= 18) {
+      else if (list[i][1] - list[i+1][1] >= 17) {
         level4++;
       }
-      else if (list[i][1] - list[i+1][1] >= 14) {
+      else if (list[i][1] - list[i+1][1] >= 13) {
         level3++;
       }
       else if (list[i][1] - list[i+1][1]  >= 9) {
@@ -300,9 +295,6 @@ class Report extends State<Result> {
             savedSuccess = false;
           });
         });
-
-
-
   }
 
   @override
@@ -316,6 +308,7 @@ class Report extends State<Result> {
     maxSpeed = getMaxSpeed(list);
     avgSpeed = getAvgSpeed(list);
     totalTime = list.last[0];
+    addRecord(list);
     //x_axis = list.length -1.toDouble();
     //y_axis = 20.toDouble();
   }
@@ -323,13 +316,37 @@ class Report extends State<Result> {
   @override
   Widget build(BuildContext context) {
 
-    return MaterialApp(
+    return WillPopScope(
+        onWillPop: () async {
+      return Future.value(false);
+    },
+      child: MaterialApp(
       home: Scaffold(
         appBar: PreferredSize(
-          // hold space for mobile phone original topbar and ignore AppBar as its size is 0
-            preferredSize: Size(double.infinity, 0),
+            preferredSize: Size(double.infinity, 60),
             child: AppBar(
+              title: Text('Journey Report'),
+              centerTitle: true,
               backgroundColor: Colors.black,
+              //leading: Icon(Icons.account_circle_rounded),
+              leading: IconButton(
+                onPressed: () {
+                  if (widget.mode == "review") {
+                    Navigator.push(
+                        context, MaterialPageRoute(
+                        builder: (context) => Review()
+                    ));
+                  }
+                  else if (widget.mode == "monitor") {
+                    Navigator.push(
+                        context, MaterialPageRoute(
+                        builder: (context) => Menu()
+                    ));
+                  }
+
+                },
+                icon: Icon(Icons.home_outlined),
+              ),
               elevation: 0, //remove shadow effect
             )
         ),
@@ -343,8 +360,6 @@ class Report extends State<Result> {
                 "Your Journey Report",
                 style: TextStyle(color: Colors.black, fontSize: 24),
               ),
-
-
               Container(
                 padding: EdgeInsets.all(10),
                 width: 300,
@@ -443,32 +458,11 @@ class Report extends State<Result> {
                 "Sharp Deceleration: $IndexOfSharpDecelerated",
                 style: TextStyle(color: Colors.black, fontSize: 12),
               ),
-              TextButton(
-                child: Text(
-                    'Save',
-                    style: TextStyle(
-                        color: Colors.red,
-                        fontSize: 24
-                    )
-                ),
-                onPressed: () {
-                  addRecord(list);
-                  if (savedSuccess) {
-                    Navigator.push(
-                        context, MaterialPageRoute(
-                        builder: (context) => Menu()
-                    ));
-                  }
-                  final snackBar = SnackBar(content: Text('Failed, Please try again'));
-                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                },
-              )
-
             ],
           ),
         ),
       ),
-    );
+    ));
   }
   @override
   void dispose() {

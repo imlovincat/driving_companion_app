@@ -1,37 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'menu.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
-
-/// Helper class to show a snackbar using the passed context.
-class ScaffoldSnackbar {
-  ScaffoldSnackbar(this._context);
-  final BuildContext _context;
-
-  /// The scaffold of current context.
-  factory ScaffoldSnackbar.of(BuildContext context) {
-    return ScaffoldSnackbar(context);
-  }
-
-  /// Helper method to show a SnackBar.
-  void show(String message) {
-    ScaffoldMessenger.of(_context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-  }
-}
 
 /// Entrypoint example for various sign-in flows with Firebase.
 class SignInPage extends StatefulWidget {
   SignInPage({Key? key}) : super(key: key);
-
   /// The page title.
   final String title = 'Sign In & Out';
-
   @override
   State<StatefulWidget> createState() => _SignInPageState();
 }
@@ -49,31 +27,19 @@ class _SignInPageState extends State<SignInPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        actions: <Widget>[
-          Builder(
-            builder: (BuildContext context) {
-              return TextButton(
-                onPressed: () async {
-                  final User? user = _auth.currentUser;
-                  if (user == null) {
-                    ScaffoldSnackbar.of(context).show('No one has signed in.');
-                    return;
-                  }
-                  await _signOut();
-
-                  final String uid = user.uid;
-                  ScaffoldSnackbar.of(context)
-                      .show('$uid has successfully signed out.');
-                },
-                child: const Text('Sign out'),
-              );
-            },
-          )
-        ],
-      ),
+    return WillPopScope(
+        onWillPop: () async {
+      return Future.value(false);
+      },
+      child: Scaffold(
+        appBar: PreferredSize(
+          // hold space for mobile phone original topbar and ignore AppBar as its size is 0
+            preferredSize: Size(double.infinity, 0),
+            child: AppBar(
+              backgroundColor: Colors.black,
+              elevation: 0, //remove shadow effect
+            )
+        ),
       body: Builder(
         builder: (BuildContext context) {
           return ListView(
@@ -85,10 +51,9 @@ class _SignInPageState extends State<SignInPage> {
           );
         },
       ),
-    );
+    ));
   }
 
-  /// Example code for sign out.
   Future<void> _signOut() async {
     await _auth.signOut();
   }
@@ -376,12 +341,13 @@ class _EmailPasswordFormState extends State<_EmailPasswordForm> {
       final User user = (await _auth.signInWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
-      ))
-          .user!;
-      ScaffoldSnackbar.of(context).show('${user.email} signed in');
+      )).user!;
+      Navigator.push(
+          context, MaterialPageRoute(
+          builder: (context) => Menu()
+      ));
     } catch (e) {
-      ScaffoldSnackbar.of(context)
-          .show('Failed to sign in with Email & Password');
+        print (e);
     }
   }
 }
