@@ -60,7 +60,7 @@ class Menu extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                         context, MaterialPageRoute(
-                        builder: (context) => Monitor()
+                        builder: (context) => new Monitor()
                     ));
                   },
                 ),
@@ -75,7 +75,7 @@ class Menu extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context, MaterialPageRoute(
-                        builder: (context) => PageViewDemo()
+                        builder: (context) => Review()
                     )
                   );
                 },

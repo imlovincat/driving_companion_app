@@ -1,265 +1,205 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-//import 'package:firebase_database/firebase_database.dart';
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'dart:convert';
-import 'menu.dart';
+import 'drivingScore.dart';
+import 'sharpSpeed.dart';
+import 'route.dart';
 import 'review.dart';
+import 'menu.dart';
 
 class Result extends StatefulWidget {
-
   final List<dynamic> trip;
   final String mode;
   Result(this.mode,this.trip);
   @override
-  Report createState() => Report();
+  ResultState createState() => ResultState();
 }
 
-class Report extends State<Result> {
+class ResultState extends State<Result> {
 
+  final PageController _pageController = PageController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
   CollectionReference journeys = FirebaseFirestore.instance.collection('journeys');
-  //DatabaseReference fireBaseDB = FirebaseDatabase.instance.reference();
   List<dynamic> list = [];
   var drivingScore = 0;
   var tripDistance = "0";
-  var IndexOfSharpAccelerated = 0;
-  var IndexOfSharpDecelerated = 0;
-  double x_axis = 0.0;
-  double y_axis = 0.0;
   int maxSpeed = 0;
   int avgSpeed = 0;
   String totalTime ="00:00:00";
-  bool savedSuccess = true;
 
-  //https://www.quartix.com/en-ie/blog/driver-score-calculations/
-  //Calculating the driver score
-  //To get the driving style score, the Quartix system:
-  // * Adds up all the weighted acceleration and braking events;
-  // * Factors in vehicle speed;
-  // * Calculates the total driving time;
-  // * Works out the acceleration and braking indexes;
-  //Averages these and subtracts from 100.
-  //For example, if you have a driver with an acceleration index of 10 and a braking index of 6,
-  //the average for this driver would be 8. This drivers’ driving score would be 100 minus 8,
-  //equalling a score of 92.
-  int getDrivingScore(List<dynamic> list) {
-    var drivingScore = 100;
+  @override
+  void initState() {
+    super.initState();
+    list = widget.trip;
+    setState(() {
+      drivingScore = getDrivingScore(list);
+      totalTime = list.last[0];
+    });
 
-    int count = 0;
-
-    //Driving at a speed of at least 5 km/h or more is considered valid driving
-    for (var i = 0; i < list.length; i++) {
-      if (list[i][1] > 5) count++;
+    if (widget.mode == "monitor") {
+      addRecord(list);
     }
 
-    //if total time less then 1 minutes or idle time takes up half of driving time
-    //if (list.length < 60 || count < list.length ~/ 2) {
-    //  drivingScore = 0;
-    //}
+    //tripDistance = getTripDistance(list).toString();
+    //maxSpeed = getMaxSpeed(list);
+    //avgSpeed = getAvgSpeed(list);
 
-    //reduction discount for long-distance driving
-    int tripTotalSecond = count;
-    double reductionDiscount = 1;
-    if (tripTotalSecond ~/ 3600 > 1) {
-      reductionDiscount = 0.9;
-    }
-    else if (tripTotalSecond ~/ 3600 > 2) {
-      reductionDiscount = 0.8;
-    }
-    else if (tripTotalSecond ~/ 3600 > 3) {
-      reductionDiscount = 0.7;
-    }
 
-    //Deduction for mistakes
-    int sharpAccelerated = getSharpAccelerated(list);
-    int sharpDecelerated = getSharpDecelerated(list);
-    double reduction = ((sharpAccelerated + sharpDecelerated) / 2) * reductionDiscount;
 
-    drivingScore = drivingScore - reduction.toInt();
 
-    //no negative score
-    if (drivingScore < 0) {
-      drivingScore = 0;
-    }
-
-    return drivingScore;
   }
 
-  //level of accelerated
-  //level1: + 4 mph per second (6 kph)
-  //level2: + 5 mph per second (8 kph)
-  //level3: + 6 mph per second (10 kph)
-  //level5: + 7 mph per second (12 kph)
-  //level6: + 8 mph per second (14 kph)
-  //the sum of all the acceleration incidents,
-  //each multiplied by their severity and finally divided by the driving time in hours.
-  // Calculating it in this way means that no drivers are penalised for driving more or less than any other driver.
-  int getSharpAccelerated(List<dynamic> list) {
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+        onWillPop: () async {
+          return Future.value(false);
+        },
+        child: MaterialApp(
+          home: Scaffold(
+              appBar: PreferredSize(
+                  preferredSize: Size(double.infinity, 60),
+                  child: AppBar(
+                    title: Text('Journey Report'),
+                    centerTitle: true,
+                    backgroundColor: Colors.black,
+                    //leading: Icon(Icons.account_circle_rounded),
+                    leading: IconButton(
+                      onPressed: () {
+                        if (widget.mode == "review") {
+                          Navigator.push(
+                              context, MaterialPageRoute(
+                              builder: (context) => Review()
+                          ));
+                        }
+                        else if (widget.mode == "monitor") {
+                          Navigator.push(
+                              context, MaterialPageRoute(
+                              builder: (context) => Menu()
+                          ));
+                        }
 
-    var level1 = 0;
-    var level2 = 0;
-    var level3 = 0;
-    var level4 = 0;
-    var level5 = 0;
-    var result = 0;
+                      },
+                      icon: Icon(Icons.home_outlined),
+                    ),
+                    elevation: 0, //remove shadow effect
+                  )
+              ),
+              body: PageView(
+                controller: _pageController,
+                children: <Widget>[
+                  //page1: Driving Score
+                  Center(
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            "Driving Score",
+                            style: TextStyle(color: Colors.black, fontSize: 18),
+                          ),
+                          Text(
+                            drivingScore.toString(),
+                            style: TextStyle(color: Colors.black, fontSize: 80),
+                          ),
+                          Text(
+                            "Total Time: $totalTime",
+                            style: TextStyle(color: Colors.black, fontSize: 12),
+                          ),
+                          RaisedButton.icon(
+                            icon: Icon(Icons.play_arrow),
+                            label: Text('Next'),
+                            textColor: Colors.grey,
+                            onPressed:() {
+                              if (_pageController.hasClients) {
+                                _pageController.animateToPage(
+                                  1,
+                                  duration: const Duration(milliseconds: 400),
+                                  curve: Curves.easeInOut,
+                                );
+                              }
 
-    for (var i = 0; i < list.length -1; i++) {
-      if (list[i+1][1] - list[i][1]  >= 14) {
-        level5++;
-      }
-      else if (list[i+1][1] - list[i][1]  >= 12) {
-        level4++;
-      }
-      else if (list[i+1][1] - list[i][1]  >= 10) {
-        level3++;
-      }
-      else if (list[i+1][1] - list[i][1]  >= 8) {
-        level2++;
-      }
-      else if (list[i+1][1] - list[i][1]  >= 6) {
-        level1++;
-      }
-    }
-    IndexOfSharpAccelerated = level1 + level2 + level3 + level4 + level5;
-    result = level1 + (level2 * 2) + (level3 * 3) + (level4 * 4) + (level5 * 5);
-    return result;
+                            }
+                          ),
+                        ]
+                    ),
+                  ),
+                  //Page2: Details
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          "Sharp Acceleration",
+                          style: TextStyle(color: Colors.black, fontSize: 12),
+                        ),
+                        Text(
+                          "",
+                          style: TextStyle(color: Colors.black, fontSize: 12),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            RaisedButton.icon(
+                                icon: Icon(Icons.menu),
+                                label: Text('Quit'),
+                                textColor: Colors.grey,
+                                onPressed:() {
+                                  if (widget.mode == "monitor") {
+                                    Navigator.push(
+                                        context, MaterialPageRoute(
+                                        builder: (context) => Menu()
+                                    ));
+                                  }
+                                  else if (widget.mode == "review") {
+                                    Navigator.push(
+                                        context, MaterialPageRoute(
+                                        builder: (context) => Review()
+                                    ));
+                                  }
+                                }
+                            ),
+                            SizedBox(width:50),
+                            RaisedButton.icon(
+                                icon: Icon(Icons.map),
+                                label: Text("Map"),
+                                textColor: Colors.grey,
+                                onPressed:() {
+                                  Navigator.push(
+                                      context, MaterialPageRoute(
+                                      builder: (context) => RoutePage(widget.mode,list)
+                                  ));
+                                }
+                            ),
+                          ],
+                        ),
+                      ]
+                    )
+                  ),
+                ],
+              )
+          ),
+        ));
   }
-
-  //level of decelerated
-  //level1: - 5 mph per second (7 kph)
-  //level2: - 7  mph per second (9 kph)
-  //level3: - 9 mph per second (13 kph)
-  //level5: - 11 mph per second (17 kph)
-  //level6: - 13 mph per second (21 kph)
-  //the sum of all braking incidents, worked out in a similar way,
-  // except that the levels of speed change are slightly different,
-  // as are the severity weightings, as excessive braking is considered to be more of a risk factor.
-  int getSharpDecelerated(List<dynamic> list) {
-    var level1 = 0;
-    var level2 = 0;
-    var level3 = 0;
-    var level4 = 0;
-    var level5 = 0;
-    var result = 0;
-
-    for (var i = 0; i < list.length -2; i++) {
-      if (list[i][1] - list[i+1][1] >= 21) {
-        level5++;
-      }
-      else if (list[i][1] - list[i+1][1] >= 17) {
-        level4++;
-      }
-      else if (list[i][1] - list[i+1][1] >= 13) {
-        level3++;
-      }
-      else if (list[i][1] - list[i+1][1]  >= 9) {
-        level2++;
-      }
-      else if (list[i][1] - list[i+1][1]  >= 7) {
-        level1++;
-      }
-    }
-    IndexOfSharpDecelerated = level1 + level2 + level3 + level4 + level5;
-    result = level1 + (level2 * 2) + (level3 * 3) + (level4 * 4) + (level5 * 5);
-    return result;
-  }
-
-  int getTripDistance(List<dynamic> list) {
-    var distance = 0.0;
-    var totalDistance = 0.0;
-    var currentlatitude = 0.0;
-    var currentlongitude = 0.0;
-    var lastlatitude = 0.0;
-    var lastlongitude = 0.0;
-    for (var i = 10; i < list.length -2; i++) {
-      lastlatitude = list[i][2].latitude;
-      lastlongitude = list[i][2].longitude;
-      currentlatitude = list[i+1][2].latitude;
-      currentlongitude = list[i+1][2].longitude;
-      if (lastlatitude != 0.0 || lastlongitude != 0.0 || currentlatitude != 0.0 || currentlongitude != 0.0) {
-        distance = Geolocator.distanceBetween(
-            lastlatitude,lastlongitude,
-            currentlatitude,currentlongitude
-        );
-        totalDistance += distance;
-      }
-    }
-    return totalDistance.toInt();
-  }
-
-  List<FlSpot> getLineChartValue(List<dynamic> list) {
-    List<FlSpot> spot = [];
-    double index;
-    double value;
-    for (var i = 0; i < list.length; i++) {
-      index = i.toDouble();
-      value = list[i][1].toDouble();
-      spot.add(FlSpot(index,value));
-    }
-    return spot;
-  }
-
-  int getMaxSpeed(List<dynamic> list) {
-    var maxSpeed = 0;
-    for (var i = 0; i < list.length; i++) {
-      if (list[i][1] > maxSpeed) {
-        maxSpeed = list[i][1];
-      }
-    }
-    return maxSpeed;
-  }
-
-  int getAvgSpeed(List<dynamic> list) {
-    double sumOfSpeed = 0;
-    int count = 0;
-    int result = 0;
-    /*
-    for (var i = 0; i < list.length; i++) {
-      if (list[i][1] > 5) {
-        count++;
-      }
-      sumOfSpeed += list[i][1];
-    }
-
-    result = sumOfSpeed ~/ count;
-    */
-    return result;
-  }
-
-  String getComment(int drivingScore) {
-    if (drivingScore >= 90) {
-      return "Excellent";
-    }
-    else if (drivingScore >= 80) {
-      return "Very Good";
-    }
-    else if (drivingScore >= 70) {
-      return "Good";
-    }
-    else if (drivingScore >= 60) {
-      return "Average";
-    }
-    else if (drivingScore >= 50) {
-      return "Fair";
-    }
-    else if (drivingScore >= 40) {
-      return "Poor";
-    }
-    else {
-      return "Very Poor";
-    }
-
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> addRecord(List<dynamic> list) {
 
     DateTime now = DateTime.now();
-    String savedTime = "${now.year.toString()}-${now.month.toString().padLeft(2,'0')}-${now.day.toString().padLeft(2,'0')} ${now.hour.toString().padLeft(2,'0')}:${now.minute.toString().padLeft(2,'0')}:${now.second.toString().padLeft(2,'0')}";
+    now = now.subtract(Duration(seconds: list.length));
+    String timeInFormat = "${now.year.toString()}-${now.month.toString().padLeft(2,'0')}-${now.day.toString().padLeft(2,'0')} ${now.hour.toString().padLeft(2,'0')}:${now.minute.toString().padLeft(2,'0')}:${now.second.toString().padLeft(2,'0')}";
+    DateTime savedTime = DateTime.parse(timeInFormat);
 
     String uid = "Anonymous";
     final User? user = _auth.currentUser;
@@ -273,7 +213,7 @@ class Report extends State<Result> {
     for (var i = 0; i < list.length; i++) {
       time.add(list[i][0]);
       speed.add(list[i][1]);
-      geoPoint.add(GeoPoint(list[1][2].latitude,list[1][2].longitude));
+      geoPoint.add(GeoPoint(list[i][2].latitude,list[i][2].longitude));
     }
     return journeys
         .add(
@@ -284,188 +224,8 @@ class Report extends State<Result> {
           'speed' : speed,
           'geoPoint' : geoPoint
         }
-        )
-        .then((value) {
-          setState(() {
-            savedSuccess = true;
-          });
-        })
-        .catchError((error) {
-          setState(() {
-            savedSuccess = false;
-          });
-        });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    list = widget.trip;
-    drivingScore = getDrivingScore(list);
-    IndexOfSharpAccelerated = getSharpAccelerated(list);
-    IndexOfSharpDecelerated = getSharpDecelerated(list);
-    tripDistance = getTripDistance(list).toString();
-    maxSpeed = getMaxSpeed(list);
-    avgSpeed = getAvgSpeed(list);
-    totalTime = list.last[0];
-    addRecord(list);
-    //x_axis = list.length -1.toDouble();
-    //y_axis = 20.toDouble();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-
-    return WillPopScope(
-        onWillPop: () async {
-      return Future.value(false);
-    },
-      child: MaterialApp(
-      home: Scaffold(
-        appBar: PreferredSize(
-            preferredSize: Size(double.infinity, 60),
-            child: AppBar(
-              title: Text('Journey Report'),
-              centerTitle: true,
-              backgroundColor: Colors.black,
-              //leading: Icon(Icons.account_circle_rounded),
-              leading: IconButton(
-                onPressed: () {
-                  if (widget.mode == "review") {
-                    Navigator.push(
-                        context, MaterialPageRoute(
-                        builder: (context) => Review()
-                    ));
-                  }
-                  else if (widget.mode == "monitor") {
-                    Navigator.push(
-                        context, MaterialPageRoute(
-                        builder: (context) => Menu()
-                    ));
-                  }
-
-                },
-                icon: Icon(Icons.home_outlined),
-              ),
-              elevation: 0, //remove shadow effect
-            )
-        ),
-        body: Center(
-
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                "Your Journey Report",
-                style: TextStyle(color: Colors.black, fontSize: 24),
-              ),
-              Container(
-                padding: EdgeInsets.all(10),
-                width: 300,
-                height: 200,
-                child: LineChart(LineChartData(
-
-                  //minX: 0,
-                  //minY: 0,
-                  //maxX: x_axis,
-                  //maxY: y_axis,
-
-                    borderData: FlBorderData(show: false),
-
-                    titlesData: FlTitlesData(
-                      topTitles: SideTitles(
-                        showTitles: false,
-                      ),
-                      rightTitles: SideTitles(
-                        showTitles: false,
-                      ),
-                      leftTitles: SideTitles(
-                        showTitles: false,
-                        //interval: 5,
-                      ),
-                      bottomTitles: SideTitles(
-                        showTitles: false,
-                        //interval: 5,
-                      ),
-
-                    ),
-
-                    axisTitleData: FlAxisTitleData(
-                        leftTitle: AxisTitle(
-                            showTitle: true,
-                            titleText: 'Speed (km/h)',
-                            margin: 10
-                        ),
-                        bottomTitle: AxisTitle(
-                          showTitle: true,
-                          margin: 10,
-
-                          titleText: 'Time',
-                        )
-                    ),
-
-                    gridData: FlGridData(
-                      show: false,
-                    ),
-
-                    lineBarsData: [
-                      LineChartBarData(
-                          isCurved: true,
-                          dotData: FlDotData(
-                            show: false,
-                          ),
-                          spots: getLineChartValue(list)
-                      )
-                    ]
-                ),
-                ),
-              ),
-              Text(
-                "Driving Score",
-                style: TextStyle(color: Colors.black, fontSize: 18),
-              ),
-              Text(
-                drivingScore.toString(),
-                style: TextStyle(color: Colors.black, fontSize: 80),
-              ),
-              Text(
-                getComment(drivingScore),
-                style: TextStyle(color: Colors.black, fontSize: 30),
-              ),
-              Text(
-                "Total Time: $totalTime",
-                style: TextStyle(color: Colors.black, fontSize: 12),
-              ),
-              Text(
-                "Total Distance: $tripDistance meters",
-                style: TextStyle(color: Colors.black, fontSize: 12),
-              ),
-
-              Text(
-                "Max Speed: $maxSpeed",
-                style: TextStyle(color: Colors.black, fontSize: 12),
-              ),
-              Text(
-                "Avg Speed: $avgSpeed",
-                style: TextStyle(color: Colors.black, fontSize: 12),
-              ),
-              Text(
-                "Sharp Acceleration: $IndexOfSharpAccelerated",
-                style: TextStyle(color: Colors.black, fontSize: 12),
-              ),
-              Text(
-                "Sharp Deceleration: $IndexOfSharpDecelerated",
-                style: TextStyle(color: Colors.black, fontSize: 12),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ));
-  }
-  @override
-  void dispose() {
-    super.dispose();
+    )
+        .then((value) => print("record saved"))
+        .catchError((error) => print(error));
   }
 }

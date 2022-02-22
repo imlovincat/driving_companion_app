@@ -1,10 +1,3 @@
-/**
- * Chi Ieong Ng C00223421
- * Software Development final year project
- * since 2021/10
- */
-
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
@@ -36,6 +29,7 @@ class Journey extends State<Monitor> {
   var mapZoom = 15.5; //14.4746
   var mapTilt = 0.0;
   var mapHeading = 0.0;
+  var totalDistance = 0;
 
   Color polyColor = Color.fromARGB(255, 153, 204, 255);
   bool pressAttention = false;
@@ -167,7 +161,7 @@ class Journey extends State<Monitor> {
    */
 
   getGeoSpeed() {
-    setState(() async {
+    setState(() async{
       speedPos= await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       speedInMps = speedPos.speed * speedFixing;
       speedInKps = speedInMps * 1.60934;
@@ -176,7 +170,7 @@ class Journey extends State<Monitor> {
   }
 
   getGeoLocation() {
-    setState(() async {
+    setState(() {
       positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
               (Position pos) {
             latitudeMessage = pos.latitude;
@@ -197,7 +191,10 @@ class Journey extends State<Monitor> {
           lastlatitude,lastlongitude,
           currentlatitude,currentlongitude
       );
-      totalDistance += distance.toInt();
+
+      if (distance >= 1.0) {
+        totalDistance += distance.toInt();
+      }
     }
   }*/
 
@@ -205,9 +202,11 @@ class Journey extends State<Monitor> {
   Future<void> googleMapUpdated() async {
     final GoogleMapController controller = await _controller.future;
 
-    controller.animateCamera(CameraUpdate.newCameraPosition(
+    controller.animateCamera (CameraUpdate.newCameraPosition(
         CameraPosition(
-            target: LatLng(latitudeMessage, longitudeMessage),
+
+            target: LatLng(position.latitude, position.longitude),
+            //target: LatLng(latitudeMessage, longitudeMessage),
             zoom: mapZoom,
             tilt: mapTilt,
             bearing: position.heading
@@ -433,15 +432,11 @@ class Journey extends State<Monitor> {
   }
 
   @override
-  void initState() {
+  void initState() async{
     super.initState();
-    /*
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [
-      SystemUiOverlay.top
-    ]);//disable android bottom bar
-    */
-    checkGPSPermission();
-    position = Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    //checkGPSPermission();
+    position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    await getGeoLocation();
     init = Timer.periodic(Duration(milliseconds: 1000), (Timer t) {
       getGeoLocation();
       getGeoSpeed();
@@ -454,14 +449,15 @@ class Journey extends State<Monitor> {
 
   @override
   Widget build(BuildContext context) {
-
     return WillPopScope (
         onWillPop: () async {
       return Future.value(false);
     },
+
     child:MaterialApp(
       home: Scaffold(
-        backgroundColor: backgroundChange ? Color.fromARGB(255, 255, 240, 240) : Color.fromARGB(255, 240, 255, 240),
+        backgroundColor: backgroundChange ? Color.fromARGB(255, 255, 180, 180) : Color.fromARGB(
+            255, 180, 255, 180),
         appBar: PreferredSize(
             preferredSize: Size(double.infinity, 60),
             child: AppBar(
@@ -471,33 +467,28 @@ class Journey extends State<Monitor> {
               //leading: Icon(Icons.account_circle_rounded),
               leading: IconButton(
                 onPressed: () {
-                  Navigator.push(
-                      context, MaterialPageRoute(
-                      builder: (context) => Menu()
-                  ));
+                  Navigator.pop(context);
                 },
                 icon: Icon(Icons.home_outlined),
               ),
               elevation: 0, //remove shadow effect
             )
         ),
-
         body: Center(
-
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
-
             children: [
               Container(
-                width: 300,
+                color: Colors.black,
+                //width: 300,
                 height: 400,
                 padding: EdgeInsets.only(
-                  top:18,
+                  //top:18,
                   bottom:5,
                 ),
                 child:
-                GoogleMap(
+                GoogleMap (
                   myLocationEnabled: true,
                   compassEnabled: false,
                   tiltGesturesEnabled: false,
@@ -507,8 +498,6 @@ class Journey extends State<Monitor> {
                   zoomGesturesEnabled: true,
                   scrollGesturesEnabled: false,
                   rotateGesturesEnabled: false,
-
-
                   polylines: _polylines,
                   markers: markers,
 

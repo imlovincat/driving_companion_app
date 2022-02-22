@@ -46,6 +46,8 @@ dependencies:
   http: ^0.13.4
   flutter_progress_hud: ^2.0.0
   screen_loader: ^4.0.1
+  page_view_indicators: ^2.0.0
+  get: ^4.6.1
 
 
 dev_dependencies:
