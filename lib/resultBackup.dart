@@ -253,7 +253,6 @@ class Report extends State<Result> {
     else {
       return "Very Poor";
     }
-
   }
 
   Future<void> addRecord(List<dynamic> list) {

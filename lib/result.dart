@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'drivingScore.dart';
-import 'sharpSpeed.dart';
 import 'route.dart';
 import 'review.dart';
 import 'menu.dart';
@@ -26,32 +24,14 @@ class ResultState extends State<Result> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   CollectionReference journeys = FirebaseFirestore.instance.collection('journeys');
   List<dynamic> list = [];
-  var drivingScore = 0;
-  var tripDistance = "0";
-  int maxSpeed = 0;
-  int avgSpeed = 0;
-  String totalTime ="00:00:00";
 
   @override
   void initState() {
     super.initState();
     list = widget.trip;
-    setState(() {
-      drivingScore = getDrivingScore(list);
-      totalTime = list.last[0];
-    });
-
     if (widget.mode == "monitor") {
       addRecord(list);
     }
-
-    //tripDistance = getTripDistance(list).toString();
-    //maxSpeed = getMaxSpeed(list);
-    //avgSpeed = getAvgSpeed(list);
-
-
-
-
   }
 
   @override
@@ -65,7 +45,7 @@ class ResultState extends State<Result> {
               appBar: PreferredSize(
                   preferredSize: Size(double.infinity, 60),
                   child: AppBar(
-                    title: Text('Journey Report'),
+                    title: Text('Driving Report'),
                     centerTitle: true,
                     backgroundColor: Colors.black,
                     //leading: Icon(Icons.account_circle_rounded),
@@ -97,19 +77,44 @@ class ResultState extends State<Result> {
                   Center(
                     child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           Text(
                             "Driving Score",
                             style: TextStyle(color: Colors.black, fontSize: 18),
                           ),
                           Text(
-                            drivingScore.toString(),
-                            style: TextStyle(color: Colors.black, fontSize: 80),
+                            getDrivingScore(list).toString(),
+                            style: TextStyle(color: Colors.black, fontSize: 100),
                           ),
                           Text(
-                            "Total Time: $totalTime",
-                            style: TextStyle(color: Colors.black, fontSize: 12),
+                            getEvaluate(getDrivingScore(list)),
+                            style: TextStyle(color: Colors.black, fontSize: 30),
+                          ),
+                          SizedBox(
+                            height:30
+                          ),
+                          Text(
+                            "Duration: ${list.last[0]}",
+                            style: TextStyle(color: Colors.black, fontSize: 16),
+                          ),
+                          Text(
+                            "Distance: ${getTripDistance(list)} meters",
+                            style: TextStyle(color: Colors.black, fontSize: 16),
+                          ),
+                          SizedBox(
+                            width: 10
+                          ),
+                          Text(
+                            "Comment",
+                              style: TextStyle(color: Colors.black, fontSize: 18),
+                          ),
+                          Text(
+                              "talk something ",
+                              style: TextStyle(color: Colors.black, fontSize: 12),
+                          ),
+                          SizedBox(
+                              width: 30
                           ),
                           RaisedButton.icon(
                             icon: Icon(Icons.play_arrow),
@@ -135,13 +140,89 @@ class ResultState extends State<Result> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
-                        Text(
-                          "Sharp Acceleration",
-                          style: TextStyle(color: Colors.black, fontSize: 12),
+                        Container(
+                          padding: EdgeInsets.all(10),
+                          width: 320,
+                          height: 200,
+                          color: Color.fromARGB(255, 151, 195, 220),
+                          child: LineChart(LineChartData(
+
+                            //minX: 0,
+                            //minY: 0,
+                            //maxX: x_axis,
+                            //maxY: y_axis,
+
+                              borderData: FlBorderData(show: false),
+
+                              titlesData: FlTitlesData(
+                                topTitles: SideTitles(
+                                  showTitles: false,
+                                ),
+                                rightTitles: SideTitles(
+                                  showTitles: false,
+                                ),
+                                leftTitles: SideTitles(
+                                  showTitles: false,
+                                  //interval: 5,
+                                ),
+                                bottomTitles: SideTitles(
+                                  showTitles: false,
+                                  //interval: 5,
+                                ),
+
+                              ),
+
+                              axisTitleData: FlAxisTitleData(
+                                  leftTitle: AxisTitle(
+                                      showTitle: true,
+                                      titleText: 'Speed (km/h)',
+                                      margin: 10
+                                  ),
+                                  bottomTitle: AxisTitle(
+                                    showTitle: true,
+                                    margin: 10,
+                                    titleText: 'Time (Seconds)',
+                                  )
+                              ),
+
+                              gridData: FlGridData(
+                                show: false,
+                              ),
+
+                              lineBarsData: [
+                                LineChartBarData(
+                                    isCurved: true,
+                                    dotData: FlDotData(
+                                      show: false,
+                                    ),
+                                    spots: getLineChartValue(list)
+                                )
+                              ]
+                          ),
+                          ),
                         ),
                         Text(
-                          "",
-                          style: TextStyle(color: Colors.black, fontSize: 12),
+                          "Max Speed: ${getMaxSpeed(list)} kph",
+                          style: TextStyle(color: Colors.black, fontSize: 16),
+                        ),
+                        Text(
+                          "Avg Speed: ${getAvgSpeed(list)} kph",
+                          style: TextStyle(color: Colors.black, fontSize: 16),
+                        ),
+                        Text(
+                          "Acceleration: ",
+                          style: TextStyle(color: Colors.black, fontSize: 16),
+                        ),
+                        Text(
+                          "Braking: ",
+                          style: TextStyle(color: Colors.black, fontSize: 16),
+                        ),
+                        Text(
+                          "Over speed: ",
+                          style: TextStyle(color: Colors.black, fontSize: 16),
+                        ),
+                        SizedBox(
+                          height:20
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -227,5 +308,17 @@ class ResultState extends State<Result> {
     )
         .then((value) => print("record saved"))
         .catchError((error) => print(error));
+  }
+
+  List<FlSpot> getLineChartValue(List<dynamic> list) {
+    List<FlSpot> spot = [];
+    double index;
+    double value;
+    for (var i = 0; i < list.length; i++) {
+      index = i.toDouble();
+      value = list[i][1].toDouble();
+      spot.add(FlSpot(index,value));
+    }
+    return spot;
   }
 }

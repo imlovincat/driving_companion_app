@@ -5,6 +5,7 @@ import 'monitor.dart';
 import 'review.dart';
 import 'register.dart';
 import 'signInPage.dart';
+import 'profile.dart';
 import 'pageviewDemo.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -66,7 +67,7 @@ class Menu extends StatelessWidget {
                 ),
               TextButton(
                 child: Text(
-                    'Testing',
+                    'Profile',
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 24
@@ -75,7 +76,7 @@ class Menu extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context, MaterialPageRoute(
-                        builder: (context) => Review()
+                        builder: (context) => Profile()
                     )
                   );
                 },

@@ -24,10 +24,9 @@ class RouteState extends State<RoutePage> {
   @override
   void initState() {
     super.initState();
-
+    polylineSet(list);
+    setSpeedMarker(list);
     //LatLngBounds bound = LatLngBounds(southwest: list[0][2], northeast: list[list.length-1][2]);
-
-
   }
 
   @override
@@ -45,7 +44,7 @@ class RouteState extends State<RoutePage> {
               appBar: PreferredSize(
                   preferredSize: Size(double.infinity, 60),
                   child: AppBar(
-                    title: Text('Journey Route'),
+                    title: Text('Journey Route 3'),
                     centerTitle: true,
                     backgroundColor: Colors.black,
                     //leading: Icon(Icons.account_circle_rounded),
@@ -92,9 +91,6 @@ class RouteState extends State<RoutePage> {
 
                           onMapCreated: (GoogleMapController controller) {
                             _controller.complete(controller);
-                            setState(() {
-                              polylineSet(list);
-                            });
                           },
                         ),
                       ),
@@ -129,6 +125,7 @@ class RouteState extends State<RoutePage> {
                               onPressed:() {
                                 setState(() {
                                   polylineSet(list);
+                                  setSpeedMarker(list);
                                 });
                               }
                           ),
@@ -146,6 +143,30 @@ class RouteState extends State<RoutePage> {
   }
 
   polylineSet(List<dynamic> list) async{
+
+    _polylines = {};
+
+    Color polyColor = Color.fromARGB(255, 153, 204, 255);
+    List<LatLng> polylineCoordinates = [];
+
+    for (var i = 1; i < list.length; i++) {
+      Duration(milliseconds: 200);
+      setState(() async{
+        var currentGeoPoint = list[i][2];
+        polylineCoordinates.add(LatLng(currentGeoPoint.latitude, currentGeoPoint.longitude));
+        Polyline polyline = Polyline(
+            polylineId: PolylineId('poly'),
+            color: polyColor,
+            width: 6,
+            points: polylineCoordinates
+        );
+        _polylines.add(polyline);
+      });
+    }
+  }
+
+  setSpeedMarker(List<dynamic> list) async {
+    _markers = {};
 
     BitmapDescriptor a1_Icon = await BitmapDescriptor.fromAssetImage(
       ImageConfiguration(),
@@ -218,21 +239,9 @@ class RouteState extends State<RoutePage> {
       icon: BitmapDescriptor.defaultMarkerWithHue(60.0),
     ));
 
-    Color polyColor = Color.fromARGB(255, 153, 204, 255);
-    List<LatLng> polylineCoordinates = [];
     for (var i = 1; i < list.length; i++) {
-
-      var currentGeoPoint = list[i][2];
-
-      polylineCoordinates.add(LatLng(currentGeoPoint.latitude, currentGeoPoint.longitude));
-      Polyline polyline = Polyline(
-          polylineId: PolylineId('poly'),
-          color: polyColor,
-          width: 6,
-          points: polylineCoordinates
-      );
-      _polylines.add(polyline);
-
+      setState(() async{
+        var currentGeoPoint = list[i][2];
         var currentSpeed = list[i][1];
         var lastSpeed = list[i-1][1];
 
@@ -243,11 +252,11 @@ class RouteState extends State<RoutePage> {
               markerId: MarkerId("Sharp Acceleration Level 5"),
               draggable: false,
               position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
-              infoWindow: InfoWindow( //popup info
+              infoWindow: InfoWindow(
                 title: 'Accelerating: $lastSpeed -> $currentSpeed kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: a5_Icon,
+              icon: BitmapDescriptor.defaultMarker,
             ));
           }
           else if (currentSpeed - lastSpeed >= getSharpSpeedValue("a4")) {
@@ -255,11 +264,11 @@ class RouteState extends State<RoutePage> {
               markerId: MarkerId("Sharp Acceleration Level 4"),
               draggable: false,
               position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
-              infoWindow: InfoWindow( //popup info
+              infoWindow: InfoWindow(
                 title: 'Accelerating: $lastSpeed -> $currentSpeed kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: a4_Icon,
+              icon: BitmapDescriptor.defaultMarker,
             ));
           }
           else if (currentSpeed - lastSpeed >= getSharpSpeedValue("a3")) {
@@ -267,11 +276,11 @@ class RouteState extends State<RoutePage> {
               markerId: MarkerId("Sharp Acceleration Level 3"),
               draggable: false,
               position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
-              infoWindow: InfoWindow( //popup info
+              infoWindow: InfoWindow(
                 title: ' Accelerating: $lastSpeed -> $currentSpeed kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: a3_Icon,
+              icon: BitmapDescriptor.defaultMarker,
             ));
           }
           else if (currentSpeed - lastSpeed >= getSharpSpeedValue("a2")) {
@@ -279,11 +288,11 @@ class RouteState extends State<RoutePage> {
               markerId: MarkerId("Sharp Acceleration Level 2"),
               draggable: false,
               position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
-              infoWindow: InfoWindow( //popup info
+              infoWindow: InfoWindow(
                 title: 'Accelerating: $lastSpeed -> $currentSpeed kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: a2_Icon,
+              icon: BitmapDescriptor.defaultMarker,
             ));
           }
           else {
@@ -291,25 +300,25 @@ class RouteState extends State<RoutePage> {
               markerId: MarkerId("Sharp Acceleration Level 1"),
               draggable: false,
               position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
-              infoWindow: InfoWindow( //popup info
+              infoWindow: InfoWindow(
                 title: 'Accelerating: $lastSpeed -> $currentSpeed kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: a1_Icon,
+              icon: BitmapDescriptor.defaultMarker,
             ));
           }
         }
-        if (lastSpeed - currentSpeed >= 7) {
+        else if (lastSpeed - currentSpeed >= getSharpSpeedValue("d1")) {
           if (lastSpeed - currentSpeed >= getSharpSpeedValue("d5")) {
             _markers.add(Marker(
               markerId: MarkerId("Sharp Braking Level 5"),
               draggable: false,
               position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
-              infoWindow: InfoWindow( //popup info
+              infoWindow: InfoWindow(
                 title: 'Braking: $lastSpeed -> $currentSpeed kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: d5_Icon,
+              icon: BitmapDescriptor.defaultMarker,
             ));
           }
           else if (lastSpeed - currentSpeed >= getSharpSpeedValue("d4")) {
@@ -317,11 +326,11 @@ class RouteState extends State<RoutePage> {
               markerId: MarkerId("Sharp Braking Level 4"),
               draggable: false,
               position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
-              infoWindow: InfoWindow( //popup info
+              infoWindow: InfoWindow(
                 title: 'Braking: $lastSpeed -> $currentSpeed kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: d4_Icon,
+              icon: BitmapDescriptor.defaultMarker,
             ));
           }
           else if (lastSpeed - currentSpeed >= getSharpSpeedValue("d3")) {
@@ -329,11 +338,11 @@ class RouteState extends State<RoutePage> {
               markerId: MarkerId("Sharp Braking Level 3"),
               draggable: false,
               position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
-              infoWindow: InfoWindow( //popup info
+              infoWindow: InfoWindow(
                 title: 'Braking: $lastSpeed -> $currentSpeed kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: d3_Icon,
+              icon: BitmapDescriptor.defaultMarker,
             ));
           }
           else if (lastSpeed - currentSpeed >= getSharpSpeedValue("d2")) {
@@ -341,11 +350,11 @@ class RouteState extends State<RoutePage> {
               markerId: MarkerId("Sharp Braking Level 2"),
               draggable: false,
               position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
-              infoWindow: InfoWindow( //popup info
+              infoWindow: InfoWindow(
                 title: 'Braking: $lastSpeed -> $currentSpeed kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: d2_Icon,
+              icon: BitmapDescriptor.defaultMarker,
             ));
           }
           else {
@@ -353,16 +362,15 @@ class RouteState extends State<RoutePage> {
               markerId: MarkerId("Sharp Braking Level 1"),
               draggable: false,
               position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
-              infoWindow: InfoWindow( //popup info
+              infoWindow: InfoWindow(
                 title: 'Braking: $lastSpeed -> $currentSpeed kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: d1_Icon,
+              icon: BitmapDescriptor.defaultMarker,
             ));
           }
         }
+      });
     }
   }
-
-
 }
