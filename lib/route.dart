@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:marker_icon/marker_icon.dart';
 import 'sharpSpeed.dart';
 import 'menu.dart';
 import 'review.dart';
@@ -17,23 +18,26 @@ class RoutePage extends StatefulWidget {
 class RouteState extends State<RoutePage> {
 
   Completer<GoogleMapController> _controller = Completer();
-  List<dynamic> list = [];
+  late List<dynamic> list = [];
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
+  late Timer timer;
+
 
   @override
   void initState() {
     super.initState();
-    polylineSet(list);
-    setSpeedMarker(list);
+    list = widget.trip;
+    timer = Timer.periodic(Duration(milliseconds: 1000), (Timer t) {
+      polylineSet(list);
+      setSpeedMarker(list);
+    });
+
     //LatLngBounds bound = LatLngBounds(southwest: list[0][2], northeast: list[list.length-1][2]);
   }
 
   @override
   Widget build(BuildContext context) {
-
-    list = widget.trip;
-    //polylineSet(list);
 
     return WillPopScope(
         onWillPop: () async {
@@ -86,7 +90,7 @@ class RouteState extends State<RoutePage> {
 
                           initialCameraPosition: CameraPosition(
                             target: LatLng(list[0][2].latitude, list[0][2].longitude),
-                            zoom: 14.5, //14.4746
+                            zoom: 16.5, //14.4746
                           ),
 
                           onMapCreated: (GoogleMapController controller) {
@@ -142,16 +146,14 @@ class RouteState extends State<RoutePage> {
     super.dispose();
   }
 
-  polylineSet(List<dynamic> list) async{
-
+  Future polylineSet(List<dynamic> list) async{
     _polylines = {};
-
     Color polyColor = Color.fromARGB(255, 153, 204, 255);
     List<LatLng> polylineCoordinates = [];
 
     for (var i = 1; i < list.length; i++) {
       Duration(milliseconds: 200);
-      setState(() async{
+      setState(() {
         var currentGeoPoint = list[i][2];
         polylineCoordinates.add(LatLng(currentGeoPoint.latitude, currentGeoPoint.longitude));
         Polyline polyline = Polyline(
@@ -165,59 +167,69 @@ class RouteState extends State<RoutePage> {
     }
   }
 
-  setSpeedMarker(List<dynamic> list) async {
-    _markers = {};
+  Future setSpeedMarker(List<dynamic> list) async {
 
-    BitmapDescriptor a1_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpAcceleration1.png",
-    );
+    BitmapDescriptor a1 = await MarkerIcon.circleCanvasWithText(
+        size: Size(50, 50),
+        text: '∧',
+        circleColor:Color.fromARGB(255, 248, 213, 148),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor a2_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpAcceleration2.png",
-    );
+    BitmapDescriptor a2 = await MarkerIcon.circleCanvasWithText(
+        size: Size(50, 50),
+        text: '∧',
+        circleColor:Color.fromARGB(255, 239, 190, 102),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor a3_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpAcceleration3.png",
-    );
+    BitmapDescriptor a3 = await MarkerIcon.circleCanvasWithText(
+        size: Size(50, 50),
+        text: '∧',
+        circleColor:Color.fromARGB(255, 220, 176, 61),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor a4_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpAcceleration4.png",
-    );
+    BitmapDescriptor a4 = await MarkerIcon.circleCanvasWithText(
+        size: Size(50, 50),
+        text: '∧',
+        circleColor:Color.fromARGB(255, 220, 148, 61),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor a5_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpAcceleration5.png",
-    );
+    BitmapDescriptor a5 = await MarkerIcon.circleCanvasWithText(
+        size: Size(50, 50),
+        text: '∧',
+        circleColor:Color.fromARGB(255, 208, 108, 37),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor d1_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpDeceleration1.png",
-    );
+    BitmapDescriptor d1 = await MarkerIcon.circleCanvasWithText(
+        size: Size(50, 50),
+        text: '∨',
+        circleColor:Color.fromARGB(255, 243, 157, 157),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor d2_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpDeceleration2.png",
-    );
+    BitmapDescriptor d2 = await MarkerIcon.circleCanvasWithText(
+        size: Size(50, 50),
+        text: '∨',
+        circleColor:Color.fromARGB(255, 246, 123, 123),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor d3_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpDeceleration3.png",
-    );
+    BitmapDescriptor d3 = await MarkerIcon.circleCanvasWithText(
+        size: Size(50, 50),
+        text: '∨',
+        circleColor:Color.fromARGB(255, 239, 103, 103),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor d4_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpDeceleration4.png",
-    );
+    BitmapDescriptor d4 = await MarkerIcon.circleCanvasWithText(
+        size: Size(50, 50),
+        text: '∨',
+        circleColor:Color.fromARGB(255, 239, 73, 73),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor d5_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpDeceleration5.png",
-    );
+    BitmapDescriptor d5 = await MarkerIcon.circleCanvasWithText(
+        size: Size(50, 50),
+        text: '∨',
+        circleColor:Color.fromARGB(255, 243, 19, 19),
+        fontColor: Colors.white,fontSize: 35);
 
+    //_markers = {};
     _markers.add(Marker(
       markerId: MarkerId("Departure"),
       draggable: false,
@@ -227,146 +239,148 @@ class RouteState extends State<RoutePage> {
         snippet: "${list[0][0]}",
       ),
       icon: BitmapDescriptor.defaultMarker,
+      //icon: await BitmapDescriptor.fromAssetImage(ImageConfiguration(),'assets/images/a1.png'),
+      //icon: BitmapDescriptor.defaultMarkerWithHue(80.0),
     ));
     _markers.add(Marker(
       markerId: MarkerId("Destination"),
       draggable: false,
       position: LatLng(list[list.length-1][2].latitude,list[list.length-1][2].longitude),
       infoWindow: InfoWindow(
-          title: "end point",
+          title: "End point",
           snippet: "${list[list.length-1][0]}"
       ),
-      icon: BitmapDescriptor.defaultMarkerWithHue(60.0),
+      icon: BitmapDescriptor.defaultMarkerWithHue(220.0),
     ));
 
     for (var i = 1; i < list.length; i++) {
-      setState(() async{
-        var currentGeoPoint = list[i][2];
-        var currentSpeed = list[i][1];
-        var lastSpeed = list[i-1][1];
+      setState(() {
+        //var currentGeoPoint = list[i][2];
+        //var currentSpeed = list[i][1];
+        //var lastSpeed = list[i-1][1];
 
         //acceleration
-        if (currentSpeed - lastSpeed >= getSharpSpeedValue("a1")) {
-          if (currentSpeed - lastSpeed >= getSharpSpeedValue("a5")) {
+        if (list[i][1] - list[i-1][1] >= getSharpSpeedValue("a1")) {
+          if (list[i][1] - list[i-1][1] >= getSharpSpeedValue("a5")) {
             _markers.add(Marker(
               markerId: MarkerId("Sharp Acceleration Level 5"),
               draggable: false,
-              position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
+              position: LatLng(list[i][2].latitude,list[i][2].longitude),
               infoWindow: InfoWindow(
-                title: 'Accelerating: $lastSpeed -> $currentSpeed kph',
+                title: 'Accelerating: ${list[i-1][1]} -> ${list[i][1]} kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: BitmapDescriptor.defaultMarker,
+              icon: a5,
             ));
           }
-          else if (currentSpeed - lastSpeed >= getSharpSpeedValue("a4")) {
+          else if (list[i][1] - list[i-1][1] >= getSharpSpeedValue("a4")) {
             _markers.add(Marker(
               markerId: MarkerId("Sharp Acceleration Level 4"),
               draggable: false,
-              position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
+              position: LatLng(list[i][2].latitude,list[i][2].longitude),
               infoWindow: InfoWindow(
-                title: 'Accelerating: $lastSpeed -> $currentSpeed kph',
+                title: 'Accelerating: ${list[i-1][1]} -> ${list[i][1]} kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: BitmapDescriptor.defaultMarker,
+              icon: a4,
             ));
           }
-          else if (currentSpeed - lastSpeed >= getSharpSpeedValue("a3")) {
+          else if (list[i][1] - list[i-1][1] >= getSharpSpeedValue("a3")) {
             _markers.add(Marker(
               markerId: MarkerId("Sharp Acceleration Level 3"),
               draggable: false,
-              position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
+              position: LatLng(list[i][2].latitude,list[i][2].longitude),
               infoWindow: InfoWindow(
-                title: ' Accelerating: $lastSpeed -> $currentSpeed kph',
+                title: ' Accelerating: ${list[i-1][1]} -> ${list[i][1]} kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: BitmapDescriptor.defaultMarker,
+              icon: a3,
             ));
           }
-          else if (currentSpeed - lastSpeed >= getSharpSpeedValue("a2")) {
+          else if (list[i][1] - list[i-1][1] >= getSharpSpeedValue("a2")) {
             _markers.add(Marker(
               markerId: MarkerId("Sharp Acceleration Level 2"),
               draggable: false,
-              position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
+              position: LatLng(list[i][2].latitude,list[i][2].longitude),
               infoWindow: InfoWindow(
-                title: 'Accelerating: $lastSpeed -> $currentSpeed kph',
+                title: 'Accelerating: ${list[i-1][1]} -> ${list[i][1]} kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: BitmapDescriptor.defaultMarker,
+              icon: a2,
             ));
           }
           else {
             _markers.add(Marker(
               markerId: MarkerId("Sharp Acceleration Level 1"),
               draggable: false,
-              position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
+              position: LatLng(list[i][2].latitude,list[i][2].longitude),
               infoWindow: InfoWindow(
-                title: 'Accelerating: $lastSpeed -> $currentSpeed kph',
+                title: 'Accelerating: ${list[i-1][1]} -> ${list[i][1]} kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: BitmapDescriptor.defaultMarker,
+              icon: a1,
             ));
           }
         }
-        else if (lastSpeed - currentSpeed >= getSharpSpeedValue("d1")) {
-          if (lastSpeed - currentSpeed >= getSharpSpeedValue("d5")) {
+        else if (list[i-1][1] - list[i][1] >= getSharpSpeedValue("d1")) {
+          if (list[i-1][1] - list[i][1] >= getSharpSpeedValue("d5")) {
             _markers.add(Marker(
               markerId: MarkerId("Sharp Braking Level 5"),
               draggable: false,
-              position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
+              position: LatLng(list[i][2].latitude,list[i][2].longitude),
               infoWindow: InfoWindow(
-                title: 'Braking: $lastSpeed -> $currentSpeed kph',
+                title: 'Braking: ${list[i-1][1]} -> ${list[i][1]} kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: BitmapDescriptor.defaultMarker,
+              icon: d5,
             ));
           }
-          else if (lastSpeed - currentSpeed >= getSharpSpeedValue("d4")) {
+          else if (list[i-1][1] - list[i][1] >= getSharpSpeedValue("d4")) {
             _markers.add(Marker(
               markerId: MarkerId("Sharp Braking Level 4"),
               draggable: false,
-              position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
+              position: LatLng(list[i][2].latitude,list[i][2].longitude),
               infoWindow: InfoWindow(
-                title: 'Braking: $lastSpeed -> $currentSpeed kph',
+                title: 'Braking: ${list[i-1][1]} -> ${list[i][1]} kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: BitmapDescriptor.defaultMarker,
+              icon: d4,
             ));
           }
-          else if (lastSpeed - currentSpeed >= getSharpSpeedValue("d3")) {
+          else if (list[i-1][1] - list[i][1] >= getSharpSpeedValue("d3")) {
             _markers.add(Marker(
               markerId: MarkerId("Sharp Braking Level 3"),
               draggable: false,
-              position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
+              position: LatLng(list[i][2].latitude,list[i][2].longitude),
               infoWindow: InfoWindow(
-                title: 'Braking: $lastSpeed -> $currentSpeed kph',
+                title: 'Braking: ${list[i-1][1]} -> ${list[i][1]} kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: BitmapDescriptor.defaultMarker,
+              icon: d3,
             ));
           }
-          else if (lastSpeed - currentSpeed >= getSharpSpeedValue("d2")) {
+          else if (list[i-1][1] - list[i][1] >= getSharpSpeedValue("d2")) {
             _markers.add(Marker(
               markerId: MarkerId("Sharp Braking Level 2"),
               draggable: false,
-              position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
+              position: LatLng(list[i][2].latitude,list[i][2].longitude),
               infoWindow: InfoWindow(
-                title: 'Braking: $lastSpeed -> $currentSpeed kph',
+                title: 'Braking: ${list[i-1][1]} -> ${list[i][1]} kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: BitmapDescriptor.defaultMarker,
+              icon: d2,
             ));
           }
           else {
             _markers.add(Marker(
               markerId: MarkerId("Sharp Braking Level 1"),
               draggable: false,
-              position: LatLng(currentGeoPoint.latitude,currentGeoPoint.longitude),
+              position: LatLng(list[i][2].latitude,list[i][2].longitude),
               infoWindow: InfoWindow(
-                title: 'Braking: $lastSpeed -> $currentSpeed kph',
+                title: 'Braking: ${list[i-1][1]} -> ${list[i][1]} kph',
                 snippet: '${list[i][0]}',
               ),
-              icon: BitmapDescriptor.defaultMarker,
+              icon: d1,
             ));
           }
         }
