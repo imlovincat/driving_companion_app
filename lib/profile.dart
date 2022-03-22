@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_session_manager/flutter_session_manager.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'menu.dart';
 import 'drivingScore.dart';
+import 'setting.dart';
+import 'algorithmJson.dart';
 
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -20,8 +24,9 @@ class _Profile extends State<Profile> {
   int _avgScore = 0;
   var _email ="";
   int _numberOfDriving = 0;
-  int _totalTime = 0;
+  late int _totalTime = 0;
   double _totalDistance = 0;
+  String groupName = '';
 
   _Profile() {
     getData().then((val) => setState(() {
@@ -30,11 +35,15 @@ class _Profile extends State<Profile> {
       _email = userEmail();
       _numberOfDriving = _score.length;
       _totalDistance = (_totalDistance / 1000);
+
     }));
   }
 
   @override
   void initState() {
+    /*getAlgorithm().then((val) => setState(() {
+      groupName = val;
+    }));*/
     super.initState();
   }
 
@@ -61,6 +70,18 @@ class _Profile extends State<Profile> {
                   },
                   icon: Icon(Icons.home_outlined),
                 ),
+                actions: <Widget>[
+                  IconButton(
+                    icon: const Icon(Icons.settings),
+                    tooltip: 'Setting',
+                    onPressed: () {
+                      Navigator.push(
+                          context, MaterialPageRoute(
+                          builder: (context) => Setting()
+                      ));
+                    },
+                  ),
+                  ],
                 elevation: 0, //remove shadow effect
               )
           ),
@@ -214,7 +235,7 @@ class _Profile extends State<Profile> {
                         height:20
                     ),
                     Text(
-                      "Number of driving : ${_numberOfDriving.toString()}",
+                      "Total driving : ${_numberOfDriving.toString()} times",
                       style: TextStyle(color: Colors.black, fontSize: 15),
                     ),
                     SizedBox(
@@ -258,6 +279,11 @@ class _Profile extends State<Profile> {
     );
   }
 
+  Future<String> getAlgorithm() async{
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('algorithm').toString();
+  }
+
   int getAvgScore(List<int> drivingScore) {
     var sum = 0;
     for (var i = 0; i < drivingScore.length; i++) {
@@ -266,26 +292,31 @@ class _Profile extends State<Profile> {
     return sum ~/ drivingScore.length;
   }
 
-  Future <List<int>> getData() async{
-    List<int> score = [];
+  Future<List<int>> getData() async{
+    late List<int> score = [];
+    AlgorithmJson json = AlgorithmJson.fromJson(await SessionManager().get('scoring'));
     await FirebaseFirestore.instance
         .collection('journeys')
-        .where('userUID', isEqualTo: userUID())
         .limit(10)
+        .where('userUID', isEqualTo: userUID())
+        .orderBy('createdAt', descending: false)
         .get()
         .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
+      querySnapshot.docs.forEach((doc) async {
         List<dynamic> list = [];
         for (var i = 0; i < doc["speed"].length; i++) {
           list.add([doc["time"][i],doc["speed"][i],doc["geoPoint"][i]]);
           _totalTime ++;
         }
-        score.add(getDrivingScore(list));
-        _totalDistance += getTripDistance(list).toDouble();
+        await getDrivingScore(json,list).then((drivingScore) {
+          setState(() {
+            score.add(drivingScore);
+            _totalDistance += getTripDistance(list).toDouble();
+          });
+        } );
       });
     });
-    print(score.toString());
-    return score;
+    return Future.delayed(Duration(seconds: 1), () =>score);
   }
 
   transformSeconds(int seconds) {
@@ -296,7 +327,7 @@ class _Profile extends State<Profile> {
     String hoursStr = (hours % 60).toString();
     String minutesStr = (minutes % 60).toString();
     //String secondsStr = (seconds % 60).toString().padLeft(2, '0');
-    return "$hoursStr hours $minutesStr minutes";
+    return "$hoursStr hrs $minutesStr mins";
   }
 
   List<FlSpot> getLineChartValue(List<int> list) {
@@ -310,27 +341,6 @@ class _Profile extends State<Profile> {
     }
     return spot;
   }
-  /*
-  Future<void> getData(String documentID) async {
-    List<dynamic> time = [];
-    List<dynamic> speed = [];
-    List<dynamic> location = [];
-
-    var collection = FirebaseFirestore.instance.collection('journeys');
-    var document = await collection.doc(documentID).get();
-
-    if (document.exists) {
-      Map<String, dynamic>? data = document.data();
-
-      data?["time"].forEach((v) => time.add(v));
-      data?["speed"].forEach((v) => speed.add(v));
-      data?["geoPoint"].forEach((v) => location.add(v));
-
-      for (var i = 0; i < time.length; i++) {
-        trip.add([time[i],speed[i],location[i]]);
-      }
-    }
-  }*/
 
   String userUID() {
     final User? user = _auth.currentUser;
@@ -347,4 +357,6 @@ class _Profile extends State<Profile> {
     }
     return "";
   }
+
+
 }
