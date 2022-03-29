@@ -1,18 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_progress_hud/flutter_progress_hud.dart';
+import 'package:flutter_session_manager/flutter_session_manager.dart';
 import 'monitor.dart';
 import 'review.dart';
 import 'register.dart';
 import 'signInPage.dart';
 import 'profile.dart';
-import 'pageviewDemo.dart';
+import 'setting.dart';
+import 'settingAdmin.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class Menu extends StatelessWidget {
 
   final User? user = _auth.currentUser;
+  late String group = "USER";
+
+  Menu() {
+    groupAccess().then((val) {
+      group = val;
+      print(val);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,13 +61,18 @@ class Menu extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              TextButton(
-                  child: Text(
-                      'Monitor',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24
-                      )
+              /*Container(
+                width: 100,
+                height: 100,
+                child: Image.asset(
+                  'assets/images/a1.png',
+                ),
+              ),*/
+              TextButton.icon(
+                  icon: Icon(Icons.directions_car,size: 32.0),
+                  label: Text('Monitor', style: TextStyle(color: Colors.white, fontSize: 28)),
+                  style: ButtonStyle(
+                    foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
                   ),
                   onPressed: () {
                     Navigator.push(
@@ -65,13 +81,11 @@ class Menu extends StatelessWidget {
                     ));
                   },
                 ),
-              TextButton(
-                child: Text(
-                    'Profile',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24
-                    )
+              TextButton.icon(
+                icon: Icon(Icons.person,size: 32.0),
+                label: Text('Profile', style: TextStyle(color: Colors.white, fontSize: 28)),
+                style: ButtonStyle(
+                  foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
                 ),
                 onPressed: () {
                   Navigator.push(
@@ -81,13 +95,11 @@ class Menu extends StatelessWidget {
                   );
                 },
               ),
-              TextButton(
-                child: Text(
-                    'Review',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24
-                    )
+              TextButton.icon(
+                icon: Icon(Icons.history,size: 32.0),
+                label: Text('History', style: TextStyle(color: Colors.white, fontSize: 28)),
+                style: ButtonStyle(
+                  foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
                 ),
                 onPressed: () {
                   Navigator.push(
@@ -97,13 +109,47 @@ class Menu extends StatelessWidget {
                   );
                 },
               ),
-              TextButton(
-                child: Text(
-                    'Sign out',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24
-                    )
+              TextButton.icon(
+                icon: Icon(Icons.assistant_photo,size: 32.0),
+                label: Text('Ranking', style: TextStyle(color: Colors.white, fontSize: 28)),
+                style: ButtonStyle(
+                  foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                      context, MaterialPageRoute(
+                      builder: (context) => Review()
+                  )
+                  );
+                },
+              ),
+              TextButton.icon(
+                icon: Icon(Icons.settings,size: 32.0),
+                label: Text('Setting', style: TextStyle(color: Colors.white, fontSize: 28)),
+                style: ButtonStyle(
+                  foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                ),
+                onPressed: () {
+                  if (group == "ADMIN") {
+                    Navigator.push(
+                        context, MaterialPageRoute(
+                        builder: (context) => SettingAdmin()
+                    ));
+                  }
+                  else {
+                    Navigator.push(
+                        context, MaterialPageRoute(
+                        builder: (context) => Setting()
+                    ));
+                  }
+
+                },
+              ),
+              TextButton.icon(
+                icon: Icon(Icons.add_to_home_screen,size: 32.0),
+                label: Text('Sign out', style: TextStyle(color: Colors.white, fontSize: 28)),
+                style: ButtonStyle(
+                  foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
                 ),
                 onPressed: () async {
                   await showDialog(
@@ -136,4 +182,9 @@ class Menu extends StatelessWidget {
         ),
     ));
   }
+
+  Future<String> groupAccess() async{
+    return await SessionManager().get('group');
+  }
+
 }
