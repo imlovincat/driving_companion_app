@@ -1,10 +1,36 @@
 import 'package:geolocator/geolocator.dart';
-import 'sharpSpeed.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'algorithmJson.dart';
 
-int getDrivingScore(List<dynamic> list) {
+Future<int> getDrivingScore(AlgorithmJson json, List<dynamic> list) async{
+  Map<String, dynamic> rule = {};
+  List<int> speeding = [];
+  List<int> braking = [];
+  List<int> accelerating = [];
+  for (var i = 0; i < json.speeding.length; i++) {
+    speeding.add(json.speeding[i].toInt());
+  }
+  for (var i = 0; i < json.braking.length; i++) {
+    braking.add(json.braking[i].toInt());
+  }
+  for (var i = 0; i < json.accelerating.length; i++) {
+    accelerating.add(json.accelerating[i].toInt());
+  }
+  rule['speeding'] = speeding;
+  rule['braking'] = braking;
+  rule['accelerating'] = accelerating;
+  return drivingScoreAlgorithm(rule,list).toInt();
+}
+
+int drivingScoreAlgorithm(Map<String, dynamic> rule,List<dynamic> list) {
+
   var drivingScore = 100;
-  int sharpAccelerated = getSharpAccelerated(list);
-  int sharpDecelerated = getSharpDecelerated(list);
+  List<int> speeding = rule['speeding'];
+  List<int> accelerating = rule['accelerating'];
+  List<int> braking = rule['braking'];
+
+  int sharpAccelerated = getSharpAccelerated(accelerating,list);
+  int sharpDecelerated = getSharpDecelerated(braking,list);
 
   drivingScore = drivingScore - sharpAccelerated - sharpDecelerated;
 
@@ -16,7 +42,7 @@ int getDrivingScore(List<dynamic> list) {
   return drivingScore.toInt();
 }
 
-int getSharpAccelerated(List<dynamic> list) {
+int getSharpAccelerated(List<int> accelerating,List<dynamic> list) {
 
   var indexOfSharpAccelerated = 1;
   bool wavePeak = false;
@@ -27,38 +53,24 @@ int getSharpAccelerated(List<dynamic> list) {
   var level5 = 0;
 
   for (var i = 0; i < list.length -1; i++) {
-
     //speed wave peak
-    if (wavePeak = false && list[i][1] - list[i+1][1] >=2 ) {
-      wavePeak = true;
-    }
+    if (wavePeak = false && list[i][1] - list[i+1][1] >=2 ) {wavePeak = true;}
     else if (wavePeak = true && list[i+1][1] - list[i][1] >= 2 ) {
       indexOfSharpAccelerated++;
       wavePeak = false;
     }
-
-    if (list[i+1][1] - list[i][1]  >= getSharpSpeedValue("a5")) {
-      level5++;
-    }
-    else if (list[i+1][1] - list[i][1]  >= getSharpSpeedValue("a4")) {
-      level4++;
-    }
-    else if (list[i+1][1] - list[i][1]  >= getSharpSpeedValue("a3")) {
-      level3++;
-    }
-    else if (list[i+1][1] - list[i][1]  >= getSharpSpeedValue("a2")) {
-      level2++;
-    }
-    else if (list[i+1][1] - list[i][1]  >= getSharpSpeedValue("a1")) {
-      level1++;
-    }
+    if (list[i+1][1] - list[i][1]  >= accelerating[4]) {level5++;}
+    else if (list[i+1][1] - list[i][1]  >= accelerating[3]) {level4++;}
+    else if (list[i+1][1] - list[i][1]  >= accelerating[2]) {level3++;}
+    else if (list[i+1][1] - list[i][1]  >= accelerating[1]) {level2++;}
+    else if (list[i+1][1] - list[i][1]  >= accelerating[0]) {level1++;}
   }
 
   var deduction= (((level1 + (level2 * 2) + (level3 * 3) + (level4 * 4) + (level5 * 5)) / (indexOfSharpAccelerated * 3)) * 100) /2;
   return deduction.toInt();
 }
 
-int getSharpDecelerated(List<dynamic> list) {
+int getSharpDecelerated(List<int> braking,List<dynamic> list) {
 
   var indexOfSharpDecelerated = 1;
   bool wavePeak = false;
@@ -69,33 +81,21 @@ int getSharpDecelerated(List<dynamic> list) {
   var level5 = 0;
 
   for (var i = 0; i < list.length -1; i++) {
-
     //speed wave peak
-    if (wavePeak = false && list[i+1][1] - list[i][1] >=2 ) {
+    if (wavePeak = false && list[i+1][1] - list[i][1] >=3 ) {
       wavePeak = true;
     }
-    else if (wavePeak = true && list[i][1] - list[i+1][1] >= 2 ) {
+    else if (wavePeak = true && list[i][1] - list[i+1][1] >= 3 ) {
       indexOfSharpDecelerated++;
       wavePeak = false;
     }
 
-    if (list[i][1] - list[i+1][1] >= getSharpSpeedValue("d5")) {
-      level5++;
-    }
-    else if (list[i][1] - list[i+1][1] >= getSharpSpeedValue("d4")) {
-      level4++;
-    }
-    else if (list[i][1] - list[i+1][1] >= getSharpSpeedValue("a3")) {
-      level3++;
-    }
-    else if (list[i][1] - list[i+1][1]  >= getSharpSpeedValue("a2")) {
-      level2++;
-    }
-    else if (list[i][1] - list[i+1][1]  >= getSharpSpeedValue("a1")) {
-      level1++;
-    }
+    if (list[i][1] - list[i+1][1] >= braking[4]) {level5++;}
+    else if (list[i][1] - list[i+1][1] >= braking[3]) {level4++;}
+    else if (list[i][1] - list[i+1][1] >= braking[2]) {level3++;}
+    else if (list[i][1] - list[i+1][1]  >= braking[1]) {level2++;}
+    else if (list[i][1] - list[i+1][1]  >= braking[0]) {level1++;}
   }
-
   var deduction= (((level1 + (level2 * 2) + (level3 * 3) + (level4 * 4) + (level5 * 5)) / (indexOfSharpDecelerated * 3)) * 100) /2;
   return deduction.toInt();
 }
@@ -128,19 +128,19 @@ int getAvgSpeed(List<dynamic> list) {
 int getTripDistance(List<dynamic> list) {
   var distance = 0.0;
   var totalDistance = 0.0;
-  var currentlatitude = 0.0;
-  var currentlongitude = 0.0;
-  var lastlatitude = 0.0;
-  var lastlongitude = 0.0;
+  var currentLatitude = 0.0;
+  var currentLongitude = 0.0;
+  var lastLatitude = 0.0;
+  var lastLongitude = 0.0;
   for (var i = 10; i < list.length -2; i++) {
-    lastlatitude = list[i][2].latitude;
-    lastlongitude = list[i][2].longitude;
-    currentlatitude = list[i+1][2].latitude;
-    currentlongitude = list[i+1][2].longitude;
-    if (lastlatitude != 0.0 || lastlongitude != 0.0 || currentlatitude != 0.0 || currentlongitude != 0.0) {
+    lastLatitude = list[i][2].latitude;
+    lastLongitude = list[i][2].longitude;
+    currentLatitude = list[i+1][2].latitude;
+    currentLongitude = list[i+1][2].longitude;
+    if (lastLatitude != 0.0 || lastLongitude != 0.0 || currentLatitude != 0.0 || currentLongitude != 0.0) {
       distance = Geolocator.distanceBetween(
-          lastlatitude,lastlongitude,
-          currentlatitude,currentlongitude
+          lastLatitude,lastLongitude,
+          currentLatitude,currentLongitude
       );
       totalDistance += distance;
     }
@@ -171,3 +171,4 @@ String getEvaluate(int drivingScore) {
     return "Very Poor";
   }
 }
+
