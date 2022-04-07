@@ -135,10 +135,13 @@ class _SettingAdminState extends State<SettingAdmin> {
                                       icon: Icon(Icons.arrow_back_ios),
                                       label: Text('Edit'),
                                       textColor: Colors.grey,
-                                      onPressed:() {
+                                      onPressed:() async{
+                                        setScoringMethod(dropdownValue);
+                                        setSession(dropdownValue);
+                                        Map<String, dynamic> list = await getData(dropdownValue);
                                         Navigator.push(
                                             context, MaterialPageRoute(
-                                            builder: (context) => SetAlgorithm(dropdownValue)
+                                            builder: (context) => SetAlgorithm(dropdownValue,list)
                                         )
                                         );
                                       }
@@ -228,5 +231,20 @@ class _SettingAdminState extends State<SettingAdmin> {
   Future<String> getScoringMethod() async{
     return await SessionManager().get('algorithm');
   }
+
+  Future<Map<String, dynamic>> getData(String method) async{
+
+    Map<String, dynamic> list = {};
+    var collection = FirebaseFirestore.instance.collection('algorithm');
+    var document = await collection.doc(method).get();
+    if (document.exists) {
+      Map<String, dynamic>? data = document.data();
+      list['speeding'] = data?['speeding'];
+      list['braking'] = data?['braking'];
+      list['accelerating'] = data?['accelerating'];
+    }
+    return list;
+  }
+
 
 }

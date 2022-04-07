@@ -5,11 +5,11 @@ import 'package:flutter_progress_hud/flutter_progress_hud.dart';
 import 'package:flutter_session_manager/flutter_session_manager.dart';
 import 'monitor.dart';
 import 'review.dart';
-import 'register.dart';
 import 'signInPage.dart';
 import 'profile.dart';
 import 'setting.dart';
 import 'settingAdmin.dart';
+import 'ranking.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -21,7 +21,8 @@ class Menu extends StatelessWidget {
   Menu() {
     groupAccess().then((val) {
       group = val;
-      print(val);
+      printSession();
+
     });
   }
 
@@ -118,7 +119,7 @@ class Menu extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                       context, MaterialPageRoute(
-                      builder: (context) => Review()
+                      builder: (context) => Ranking()
                   )
                   );
                 },
@@ -185,6 +186,15 @@ class Menu extends StatelessWidget {
 
   Future<String> groupAccess() async{
     return await SessionManager().get('group');
+  }
+
+  void printSession() async{
+    print(await SessionManager().get('firstname'));
+    print(await SessionManager().get('surname'));
+    print(await SessionManager().get('nickname'));
+    print(await SessionManager().get('group'));
+    print(await SessionManager().get('algorithm'));
+
   }
 
 }

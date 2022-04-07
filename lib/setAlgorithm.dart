@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -13,26 +14,20 @@ import 'menu.dart';
 
 class SetAlgorithm extends StatefulWidget {
   final String algorithm;
-  SetAlgorithm(this.algorithm);
+  final Map<String, dynamic> list;
+  SetAlgorithm(this.algorithm, this.list);
   @override
   SetAlgorithmState createState() => SetAlgorithmState();
 }
 
 class SetAlgorithmState extends State<SetAlgorithm> {
 
-  late Map<String, dynamic> dataList = {};
-  late String method ="";
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+
 
   @override
   void initState() {
-    getMethod().then((val) => setState(() {
-      method = val;
-      print("method: ${method.toString()}");
-      getData(method).then((val) => setState(() {
-        dataList = val;
-        print("list: ${dataList.toString()}");
-      }));
-    }));
 
     super.initState();
   }
@@ -40,11 +35,9 @@ class SetAlgorithmState extends State<SetAlgorithm> {
   @override
   Widget build(BuildContext context) {
 
-    print("list: ${dataList.toString()}");
-
-    List<dynamic> speeding = dataList['speeding'];
-    List<dynamic> accelerating = dataList['accelerating'];
-    List<dynamic> braking = dataList['braking'];
+    final TextEditingController _speedingController = TextEditingController(text: widget.list['speeding'].toString());
+    final TextEditingController _acceleratingController = TextEditingController(text: widget.list['accelerating'].toString());
+    final TextEditingController _brakingController = TextEditingController(text: widget.list['braking'].toString());
 
     return WillPopScope(
         onWillPop: () async {
@@ -72,7 +65,8 @@ class SetAlgorithmState extends State<SetAlgorithm> {
                   )
               ),
 
-              body: Center (
+              body: Form (
+                key: _formKey,
                 child: Container(
                   alignment:Alignment.center,
                   padding: EdgeInsets.only(
@@ -91,31 +85,38 @@ class SetAlgorithmState extends State<SetAlgorithm> {
                         style: TextStyle(color: Colors.black, fontSize: 20),
                       ),
                       Text(
-                        "${method}",
+                        "${widget.algorithm}",
                         style: TextStyle(color: Colors.black, fontSize: 40),
                       ),
                       SizedBox(
                           height:20
                       ),
                       TextFormField(
+                        controller: _speedingController,
                         decoration: const InputDecoration(labelText: 'Speeding : '),
-                        initialValue: speeding.toString(),
                         validator: (String? value) {
-                          if (value!.isEmpty) return 'Format: [1,2,3,4,5]';
-                          return null;
+                          if (value!.isEmpty) {
+                            return 'Format: [1,2,3,4,5]';}
+                          else if (json.decode(value).length != 5) {
+                            return 'Format: [1,2,3,4,6]';
+
+                          }
+                          else {
+                            return null;
+                          }
                         },
                       ),
                       TextFormField (
+                        controller: _acceleratingController,
                         decoration: const InputDecoration(labelText: 'Accelerating : '),
-                        initialValue: accelerating.toString(),
                         validator: (String? value) {
                           if (value!.isEmpty) return 'Please enter some text';
                           return null;
                         },
                       ),
                       TextFormField(
+                        controller: _brakingController,
                         decoration: const InputDecoration(labelText: 'Braking: '),
-                        initialValue: braking.toString(),
                         validator: (String? value) {
                           if (value!.isEmpty) return 'Please enter some text';
                           return null;
@@ -125,8 +126,15 @@ class SetAlgorithmState extends State<SetAlgorithm> {
                           height:50
                       ),
                       ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
+                          var method = widget.algorithm;
+                          var speeding = json.decode(_speedingController.text);
+                          var accelerating = json.decode(_acceleratingController.text);
+                          var braking = json.decode(_brakingController.text);
 
+                          /*if (_formKey.currentState!.validate()) {
+                            await saveData(method,speeding,accelerating,braking);
+                          }*/
                         },
                         child: const Text('Submit'),
                       ),
@@ -145,26 +153,12 @@ class SetAlgorithmState extends State<SetAlgorithm> {
     super.dispose();
   }
 
-  Future<Map<String, dynamic>> getData(String method) async{
-
-    Map<String, dynamic> list = {};
-    var collection = FirebaseFirestore.instance.collection('algorithm');
-    var document = await collection.doc(method).get();
-    if (document.exists) {
-      Map<String, dynamic>? data = document.data();
-      list['speeding'] = data?['speeding'];
-      list['braking'] = data?['braking'];
-      list['accelerating'] = data?['accelerating'];
-    }
-    print(list.toString());
-    return list;
+  Future<void> saveData(String method, List<dynamic> speeding, List<dynamic> accelerating, List<dynamic> braking) async {
+    FirebaseFirestore.instance.collection('algorithm')
+        .doc(method)
+        .update({'speeding': speeding, 'accelerating' : accelerating, 'braking' : braking})
+        .then((value) => print("Data updated"))
+        .catchError((error) => print("Failed to update user: $error"));
   }
-
-  Future<String> getMethod() async{
-    return widget.algorithm;
-  }
-
-
-
 
 }

@@ -78,7 +78,7 @@ class Journey extends State<Monitor> {
       timer.cancel();
       watch.reset();
       Wakelock.disable();
-      if (trip.length > 300 && getTripDistance(trip) > 1000 ) {
+      if (trip.length > 180 && getTripDistance(trip) > 500 ) {
         Navigator.push(
             context, MaterialPageRoute(
             builder: (context) => Result('monitor',trip))
