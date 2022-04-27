@@ -79,7 +79,6 @@ int getSharpAccelerated(List<int> accelerating,List<dynamic> list) {
   print("mistakes : $mistakes");
   var deduction= ((mistakes * adjustment) / indexOfSharpAccelerated) * 100;
   print("deduction : $deduction");
-  deduction = deduction * 3;
   return deduction.toInt();
 }
 
@@ -119,7 +118,6 @@ int getSharpDecelerated(List<int> braking,List<dynamic> list) {
   print("mistakes : $mistakes");
 
   var deduction= ((mistakes * adjustment) / indexOfSharpDecelerated) * 100;
-  deduction = deduction * 3;
   print("deduction : $deduction");
   return deduction.toInt();
 }
