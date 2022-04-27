@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_signin_button/button_builder.dart';
+import 'main.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -27,8 +29,6 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _register() async {
-
-
     final User? user = (await _auth.createUserWithEmailAndPassword(
       email: _emailController.text,
       password: _passwordController.text,
@@ -41,12 +41,15 @@ class _RegisterPageState extends State<RegisterPage> {
     } else {
       _success = false;
     }
-
-
   }
 
   @override
   Widget build(BuildContext context) {
+
+    final TextEditingController _firstnameController = TextEditingController();
+    final TextEditingController _surnameController = TextEditingController();
+    final TextEditingController _nicknameController = TextEditingController();
+
     return Scaffold (
         appBar: PreferredSize(
             preferredSize: Size(double.infinity, 0),
@@ -64,11 +67,41 @@ class _RegisterPageState extends State<RegisterPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   TextFormField(
+                    controller: _firstnameController,
+                    decoration: const InputDecoration(labelText: 'First name'),
+                    validator: (String? value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter your first name';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _surnameController,
+                    decoration: const InputDecoration(labelText: 'Surname'),
+                    validator: (String? value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter your surname';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _nicknameController,
+                    decoration: const InputDecoration(labelText: 'Nickname'),
+                    validator: (String? value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter your nickname';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
                     controller: _emailController,
                     decoration: const InputDecoration(labelText: 'Email'),
                     validator: (String? value) {
                       if (value!.isEmpty) {
-                        return 'Please enter some text';
+                        return 'Please enter your email';
                       }
                       return null;
                     },
@@ -78,7 +111,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     decoration: const InputDecoration(labelText: 'Password'),
                     validator: (String? value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter some text';
+                        return 'Please enter your password';
                       }
                       return null;
                     },
@@ -93,6 +126,18 @@ class _RegisterPageState extends State<RegisterPage> {
                       onPressed: () async {
                         if (_formKey.currentState!.validate()) {
                           await _register();
+
+                          if (_success == true) {
+                            await saveData(getUserUID(), _emailController.text, _firstnameController.text, _surnameController.text, _nicknameController.text);
+                            Navigator.push(
+                                context, MaterialPageRoute(
+                                builder: (context) => MyApp()
+                                )
+                            );
+                          }
+                          else {
+
+                          }
                         }
                       },
                       text: 'Register',
@@ -114,5 +159,37 @@ class _RegisterPageState extends State<RegisterPage> {
           )
         )
     );
+  }
+
+  String getUserUID() {
+    final User? user = _auth.currentUser;
+    if (user != null) {
+      return user.uid.toString();
+    }
+    return "";
+  }
+
+  Future<void> saveData(String userUID, String email, String firstname, String surname, String nickname) async {
+
+    DateTime now = DateTime.now();
+    String timeInFormat = "${now.year.toString()}-${now.month.toString().padLeft(2,'0')}-${now.day.toString().padLeft(2,'0')} ${now.hour.toString().padLeft(2,'0')}:${now.minute.toString().padLeft(2,'0')}:${now.second.toString().padLeft(2,'0')}";
+    DateTime savedTime = DateTime.parse(timeInFormat);
+
+    CollectionReference firestore = FirebaseFirestore.instance.collection('users');
+
+    return firestore
+        .doc(userUID)
+        .set({
+          'algorithm' : 'intermediate',
+          'createdAt' : savedTime,
+          'email' : email,
+          'firstname' : firstname,
+          'group' : 'USER',
+          'nickname' : nickname,
+          'surname' : surname
+        }
+    )
+        .then((value) => print("record saved"))
+        .catchError((error) => print(error));
   }
 }

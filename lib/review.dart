@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
 import 'result.dart';
 import 'menu.dart';
-import 'output.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -24,7 +23,7 @@ class Review extends StatelessWidget {
           appBar: PreferredSize(
               preferredSize: Size(double.infinity, 60),
               child: AppBar(
-                title: Text('Journey Records 13'),
+                title: Text('Journey Histories'),
                 centerTitle: true,
                 backgroundColor: Colors.black,
                 leading: IconButton(
@@ -41,11 +40,24 @@ class Review extends StatelessWidget {
           ),
           body: FutureBuilder<QuerySnapshot> (
             future: journeys
+                .limit(30)
                 .where('userUID', isEqualTo: userUID())
+                .orderBy('createdAt', descending: true)
                 .get(),
             builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasError) {
-                return Text("Something went wrong");
+                return Center(
+                    child: Text(
+                        "Database Error",
+                        style: TextStyle(color: Colors.black, fontSize: 28))
+                );
+              }
+              if (snapshot.data!.size == 0) {
+                return Center(
+                    child: Text(
+                        "No Record",
+                        style: TextStyle(color: Colors.black, fontSize: 28))
+                );
               }
               if (snapshot.connectionState == ConnectionState.done) {
                 return ListView(
@@ -88,7 +100,9 @@ class Review extends StatelessWidget {
                   }).toList(),
                 );
               }
-              return Text("Loading");
+              return Center(
+                child: CircularProgressIndicator()
+              );
             }
           )
         ),

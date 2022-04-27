@@ -21,8 +21,7 @@ class Menu extends StatelessWidget {
   Menu() {
     groupAccess().then((val) {
       group = val;
-      printSession();
-
+      //printSession();
     });
   }
 
@@ -69,6 +68,13 @@ class Menu extends StatelessWidget {
                   'assets/images/a1.png',
                 ),
               ),*/
+              Container(
+                width: 200,
+                height: 170,
+                child: Image.asset(
+                  'assets/images/icon2.png',
+                ),
+              ),
               TextButton.icon(
                   icon: Icon(Icons.directions_car,size: 32.0),
                   label: Text('Monitor', style: TextStyle(color: Colors.white, fontSize: 28)),
@@ -147,7 +153,7 @@ class Menu extends StatelessWidget {
                 },
               ),
               TextButton.icon(
-                icon: Icon(Icons.add_to_home_screen,size: 32.0),
+                icon: Icon(Icons.rotate_left,size: 32.0),
                 label: Text('Sign out', style: TextStyle(color: Colors.white, fontSize: 28)),
                 style: ButtonStyle(
                   foregroundColor: MaterialStateProperty.all<Color>(Colors.white),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:marker_icon/marker_icon.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:wakelock/wakelock.dart';
 import 'dart:async';
@@ -78,7 +79,7 @@ class Journey extends State<Monitor> {
       timer.cancel();
       watch.reset();
       Wakelock.disable();
-      if (trip.length > 180 && getTripDistance(trip) > 500 ) {
+      if (trip.length > 300 && getTripDistance(trip) > 1000 ) {
         Navigator.push(
             context, MaterialPageRoute(
             builder: (context) => Result('monitor',trip))
@@ -299,55 +300,65 @@ class Journey extends State<Monitor> {
 
     speedColor = Color.fromARGB(255, 0, 0, 0);
 
-    BitmapDescriptor sharpAccelerationLevel1_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpAcceleration1.png",
-    );
+    BitmapDescriptor a1 = await MarkerIcon.circleCanvasWithText(
+        size: Size(80, 80),
+        text: '∧',
+        circleColor:Color.fromARGB(255, 248, 213, 148),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor sharpAccelerationLevel2_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpAcceleration2.png",
-    );
+    BitmapDescriptor a2 = await MarkerIcon.circleCanvasWithText(
+        size: Size(80, 80),
+        text: '∧',
+        circleColor:Color.fromARGB(255, 239, 190, 102),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor sharpAccelerationLevel3_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpAcceleration3.png",
-    );
+    BitmapDescriptor a3 = await MarkerIcon.circleCanvasWithText(
+        size: Size(80, 80),
+        text: '∧',
+        circleColor:Color.fromARGB(255, 220, 176, 61),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor sharpAccelerationLevel4_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpAcceleration4.png",
-    );
+    BitmapDescriptor a4 = await MarkerIcon.circleCanvasWithText(
+        size: Size(80, 80),
+        text: '∧',
+        circleColor:Color.fromARGB(255, 220, 148, 61),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor sharpAccelerationLevel5_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpAcceleration5.png",
-    );
+    BitmapDescriptor a5 = await MarkerIcon.circleCanvasWithText(
+        size: Size(80, 80),
+        text: '∧',
+        circleColor:Color.fromARGB(255, 208, 108, 37),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor sharpDecelerationLevel1_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpDeceleration1.png",
-    );
+    BitmapDescriptor d1 = await MarkerIcon.circleCanvasWithText(
+        size: Size(80, 80),
+        text: '∨',
+        circleColor:Color.fromARGB(255, 243, 157, 157),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor sharpDecelerationLevel2_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpDeceleration2.png",
-    );
+    BitmapDescriptor d2 = await MarkerIcon.circleCanvasWithText(
+        size: Size(80, 80),
+        text: '∨',
+        circleColor:Color.fromARGB(255, 246, 123, 123),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor sharpDecelerationLevel3_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpDeceleration3.png",
-    );
+    BitmapDescriptor d3 = await MarkerIcon.circleCanvasWithText(
+        size: Size(80, 80),
+        text: '∨',
+        circleColor:Color.fromARGB(255, 239, 103, 103),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor sharpDecelerationLevel4_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpDeceleration4.png",
-    );
+    BitmapDescriptor d4 = await MarkerIcon.circleCanvasWithText(
+        size: Size(80, 80),
+        text: '∨',
+        circleColor:Color.fromARGB(255, 239, 73, 73),
+        fontColor: Colors.white,fontSize: 35);
 
-    BitmapDescriptor sharpDecelerationLevel5_Icon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(),
-      "assets/images/sharpDeceleration5.png",
-    );
+    BitmapDescriptor d5 = await MarkerIcon.circleCanvasWithText(
+        size: Size(80, 80),
+        text: '∨',
+        circleColor:Color.fromARGB(255, 243, 19, 19),
+        fontColor: Colors.white,fontSize: 35);
 
     if (trip.length > 1) {
       var currentSpeed = trip.elementAt(trip.length - 1)[1];
@@ -364,7 +375,7 @@ class Journey extends State<Monitor> {
               title: 'Accelerate L5 ',
               snippet: 'over >= 13',
             ),
-            icon: sharpAccelerationLevel5_Icon, //Icon for Marker
+            icon: a5, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 255, 153, 0);
@@ -379,7 +390,7 @@ class Journey extends State<Monitor> {
               title: 'Accelerate L4 ',
               snippet: 'over >= 12',
             ),
-            icon: sharpAccelerationLevel4_Icon, //Icon for Marker
+            icon: a4, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 139, 101, 6);
@@ -394,7 +405,7 @@ class Journey extends State<Monitor> {
               title: 'Accelerate L3 ',
               snippet: 'over >= 10',
             ),
-            icon: sharpAccelerationLevel3_Icon, //Icon for Marker
+            icon: a3, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 113, 63, 0);
@@ -409,7 +420,7 @@ class Journey extends State<Monitor> {
               title: 'Accelerate L2 ',
               snippet: 'over >= 8',
             ),
-            icon: sharpAccelerationLevel2_Icon,
+            icon: a2,
             //icon: BitmapDescriptor.defaultMarker, //Icon for Marker
           ));
 
@@ -425,7 +436,7 @@ class Journey extends State<Monitor> {
               title: 'Accelerate L1 ',
               snippet: 'over >= 7',
             ),
-            icon: sharpAccelerationLevel1_Icon, //Icon for Marker
+            icon: a1, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 56, 34, 0);
@@ -443,7 +454,7 @@ class Journey extends State<Monitor> {
               title: 'Decelerate L5 ',
               snippet: 'over >= 21',
             ),
-            icon: sharpDecelerationLevel5_Icon, //Icon for Marker
+            icon: d5, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 204, 0, 0);
@@ -458,7 +469,7 @@ class Journey extends State<Monitor> {
               title: 'Decelerate L4 ',
               snippet: 'over >= 18',
             ),
-            icon: sharpDecelerationLevel4_Icon, //Icon for Marker
+            icon: d4, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 200, 0, 0);
@@ -473,7 +484,7 @@ class Journey extends State<Monitor> {
               title: 'Decelerate L3 ',
               snippet: 'over >= 14',
             ),
-            icon: sharpDecelerationLevel3_Icon, //Icon for Marker
+            icon: d3, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 150, 0, 0);
@@ -488,7 +499,7 @@ class Journey extends State<Monitor> {
               title: 'Decelerate L2 ',
               snippet: 'over >= 9',
             ),
-            icon: sharpDecelerationLevel2_Icon, //Icon for Marker
+            icon: d2, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 100, 0, 0);
@@ -503,7 +514,7 @@ class Journey extends State<Monitor> {
               title: 'Decelerate L1 ',
               snippet: 'over >= 7',
             ),
-            icon: sharpDecelerationLevel1_Icon, //Icon for Marker
+            icon: d1, //Icon for Marker
           ));
 
           speedColor = Color.fromARGB(255, 50, 0, 0);

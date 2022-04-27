@@ -27,6 +27,7 @@ class _Profile extends State<Profile> {
   late int _totalTime = 0;
   double _totalDistance = 0;
   String groupName = '';
+  String nickname = "Anonymous";
 
   _Profile() {
     getData().then((val) => setState(() {
@@ -35,7 +36,9 @@ class _Profile extends State<Profile> {
       _email = userEmail();
       _numberOfDriving = _score.length;
       _totalDistance = (_totalDistance / 1000);
-
+    }));
+    getNickName(userUID()).then((val) => setState(() {
+      nickname = val;
     }));
   }
 
@@ -58,7 +61,7 @@ class _Profile extends State<Profile> {
           appBar: PreferredSize(
               preferredSize: Size(double.infinity, 60),
               child: AppBar(
-                title: Text('Profile'),
+                title: Text("${nickname}'s Profile"),
                 centerTitle: true,
                 backgroundColor: Colors.black,
                 leading: IconButton(
@@ -106,15 +109,12 @@ class _Profile extends State<Profile> {
                       padding: EdgeInsets.all(10),
                       width: 380,
                       height: 200,
-                      //color: Color.fromARGB(255, 255, 255, 255),
                       child: LineChart(LineChartData(
                         minX: 0,
                         minY: 0,
                         maxX: 10,
                         maxY: 100,
-
                           borderData: FlBorderData(show: false),
-
                           titlesData: FlTitlesData(
                             topTitles: SideTitles(
                               showTitles: false,
@@ -125,24 +125,6 @@ class _Profile extends State<Profile> {
                             leftTitles: SideTitles(
                               showTitles: true,
                               getTextStyles: (context, value) => const TextStyle(fontSize: 12),
-                              /*getTitles: (value) {
-                                switch (value.toInt()) {
-                                  case 0:
-                                    return '0';
-                                  case 1:
-                                    return '20';
-                                  case 2:
-                                    return '40';
-                                  case 3:
-                                    return '60';
-                                  case 4:
-                                    return '80';
-                                  case 5:
-                                    return '100';
-                                  default:
-                                    return '';
-                                }
-                              }*/
                               interval: 20,
                             ),
                             bottomTitles: SideTitles(
@@ -184,11 +166,6 @@ class _Profile extends State<Profile> {
                                   titleText: 'Driving Score',
                                   margin: 0
                               ),
-                              /*bottomTitle: AxisTitle(
-                                  showTitle: true,
-                                  titleText: 'last 10 driving records',
-                                  margin: 0
-                              ),*/
                           ),
 
                           gridData: FlGridData(
@@ -206,10 +183,6 @@ class _Profile extends State<Profile> {
                           ]
                       ),
                       ),
-                    ),
-                    Text(
-                      "User : ${_email}",
-                      style: TextStyle(color: Colors.black, fontSize: 16),
                     ),
                     SizedBox(
                         height:20
@@ -235,37 +208,33 @@ class _Profile extends State<Profile> {
                         height:20
                     ),
                     Text(
-                      "Total driving : ${_numberOfDriving.toString()} times",
+                      "Total driving : ${_numberOfDriving.toString()} times\n\nTotal Time : ${transformSeconds(_totalTime)}\n\nTotal distance : ${_totalDistance.toStringAsPrecision(3)} km",
                       style: TextStyle(color: Colors.black, fontSize: 15),
                     ),
-                    SizedBox(
-                        height:10
-                    ),
-                    Text(
-                      "Total Time : ${transformSeconds(_totalTime)}",
-                      style: TextStyle(color: Colors.black, fontSize: 15),
-                    ),
-                    SizedBox(
-                        height:10
-                    ),
-                    Text(
-                      "Total distance : ${_totalDistance.toStringAsPrecision(3)} km",
-                      style: TextStyle(color: Colors.black, fontSize: 15),
-                    ),
+
+
                     SizedBox(
                         height:30
                     ),
-                    RaisedButton.icon(
-                        icon: Icon(Icons.arrow_back_ios),
-                        label: Text('Back'),
-                        textColor: Colors.grey,
-                        onPressed:() {
-                          Navigator.push(
-                              context, MaterialPageRoute(
-                              builder: (context) => Menu()
-                          )
-                          );
-                        }
+                    SizedBox(
+                      width: 200,
+                      height: 50,
+                      child: RaisedButton.icon(
+                          icon: Icon(Icons.home),
+                          color: Colors.green,
+                          label: Text(
+                            'Home',
+                            style: TextStyle(color: Colors.black, fontSize: 22),
+                          ),
+                          //textColor: Colors.grey,
+                          onPressed:() {
+                            Navigator.push(
+                                context, MaterialPageRoute(
+                                builder: (context) => Menu()
+                            )
+                            );
+                          }
+                      ),
                     ),
                     SizedBox(
                         height:20
@@ -358,5 +327,21 @@ class _Profile extends State<Profile> {
     return "";
   }
 
+  Future <String> getNickName(String userUID) async {
+
+    String nickname = "Anonymous";
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userUID)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+          if (documentSnapshot.exists) {
+            nickname = documentSnapshot['nickname'];
+          }
+    });
+
+    return nickname;
+  }
 
 }

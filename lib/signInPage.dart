@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'menu.dart';
+import 'register.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -55,13 +56,7 @@ class _SignInPageState extends State<SignInPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  SizedBox(
-                      height:50
-                  ),
                   _EmailPasswordForm(),
-                  SizedBox(
-                      height:50
-                  ),
                 ]
               )
             )
@@ -96,12 +91,16 @@ class _EmailPasswordFormState extends State<_EmailPasswordForm> {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              SizedBox(
-                  height:50
-              ),
               Container(
+                width: 200,
+                height: 170,
+                child: Image.asset(
+                  'assets/images/icon1.png',
+                ),
+              ),
+              /*Container(
                 alignment: Alignment.center,
                 child: const Text(
                   'Sign in with email and password',
@@ -110,7 +109,7 @@ class _EmailPasswordFormState extends State<_EmailPasswordForm> {
               ),
               SizedBox(
                   height:50
-              ),
+              ),*/
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
@@ -128,6 +127,19 @@ class _EmailPasswordFormState extends State<_EmailPasswordForm> {
                 },
                 obscureText: true,
               ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  textStyle: const TextStyle(fontSize: 14),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                      context, MaterialPageRoute(
+                      builder: (context) => RegisterPage()
+                  )
+                  );
+                },
+                child: const Text('Register new account                                    \n'),
+              ),
               Container(
                 padding: const EdgeInsets.only(top: 16),
                 alignment: Alignment.center,
@@ -140,6 +152,9 @@ class _EmailPasswordFormState extends State<_EmailPasswordForm> {
                     }
                   },
                 ),
+              ),
+              SizedBox(
+                  height:50
               ),
             ],
           ),

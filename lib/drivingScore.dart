@@ -1,5 +1,7 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+import 'package:http/http.dart';
 import 'algorithmJson.dart';
 
 Future<int> getDrivingScore(AlgorithmJson json, List<dynamic> list) async{
@@ -19,10 +21,10 @@ Future<int> getDrivingScore(AlgorithmJson json, List<dynamic> list) async{
   rule['speeding'] = speeding;
   rule['braking'] = braking;
   rule['accelerating'] = accelerating;
-  return drivingScoreAlgorithm(rule,list).toInt();
+  return drivingScoreAlgorithm(rule,list);
 }
 
-int drivingScoreAlgorithm(Map<String, dynamic> rule,List<dynamic> list) {
+Future<int> drivingScoreAlgorithm(Map<String, dynamic> rule,List<dynamic> list) async {
 
   var drivingScore = 100;
   List<int> speeding = rule['speeding'];
@@ -31,14 +33,15 @@ int drivingScoreAlgorithm(Map<String, dynamic> rule,List<dynamic> list) {
 
   int sharpAccelerated = getSharpAccelerated(accelerating,list);
   int sharpDecelerated = getSharpDecelerated(braking,list);
+  int overSpeed = await getOverSpeeding(speeding, list);
+  print("overspeed: $overSpeed");
 
-  drivingScore = drivingScore - sharpAccelerated - sharpDecelerated;
+  drivingScore = drivingScore - sharpAccelerated - sharpDecelerated - overSpeed;
 
   //no negative score
   if (drivingScore < 0) {
     drivingScore = 0;
   }
-
   return drivingScore.toInt();
 }
 
@@ -53,20 +56,30 @@ int getSharpAccelerated(List<int> accelerating,List<dynamic> list) {
   var level5 = 0;
 
   for (var i = 0; i < list.length -1; i++) {
+
     //speed wave peak
-    if (wavePeak = false && list[i][1] - list[i+1][1] >=2 ) {wavePeak = true;}
-    else if (wavePeak = true && list[i+1][1] - list[i][1] >= 2 ) {
+    if (wavePeak == false && list[i][1] - list[i+1][1] >=2 ) {wavePeak = true;}
+    else if (wavePeak == true && list[i+1][1] - list[i][1] >= 2 ) {
       indexOfSharpAccelerated++;
       wavePeak = false;
     }
-    if (list[i+1][1] - list[i][1]  >= accelerating[4]) {level5++;}
-    else if (list[i+1][1] - list[i][1]  >= accelerating[3]) {level4++;}
-    else if (list[i+1][1] - list[i][1]  >= accelerating[2]) {level3++;}
-    else if (list[i+1][1] - list[i][1]  >= accelerating[1]) {level2++;}
-    else if (list[i+1][1] - list[i][1]  >= accelerating[0]) {level1++;}
+
+    if (list[i+1][1] - list[i][1] >= accelerating[4]) {level5++;}
+    else if (list[i+1][1] - list[i][1] >= accelerating[3]) {level4++;}
+    else if (list[i+1][1] - list[i][1] >= accelerating[2]) {level3++;}
+    else if (list[i+1][1] - list[i][1] >= accelerating[1]) {level2++;}
+    else if (list[i+1][1] - list[i][1] >= accelerating[0]) {level1++;}
   }
 
-  var deduction= (((level1 + (level2 * 2) + (level3 * 3) + (level4 * 4) + (level5 * 5)) / (indexOfSharpAccelerated * 3)) * 100) /2;
+  var adjustment = indexOfSharpAccelerated / 100;
+  var mistakes = level1 + (level2 * 2) + (level3 * 3) + (level4 * 4) + (level5 * 5);
+  print("Decelerating part");
+  print("indexOfSharpAccelerated : $indexOfSharpAccelerated");
+  print("adjustment : $adjustment");
+  print("mistakes : $mistakes");
+  var deduction= ((mistakes * adjustment) / indexOfSharpAccelerated) * 100;
+  print("deduction : $deduction");
+  deduction = deduction * 3;
   return deduction.toInt();
 }
 
@@ -81,11 +94,12 @@ int getSharpDecelerated(List<int> braking,List<dynamic> list) {
   var level5 = 0;
 
   for (var i = 0; i < list.length -1; i++) {
+
     //speed wave peak
-    if (wavePeak = false && list[i+1][1] - list[i][1] >=3 ) {
+    if (wavePeak == false && list[i+1][1] - list[i][1] >=3 ) {
       wavePeak = true;
     }
-    else if (wavePeak = true && list[i][1] - list[i+1][1] >= 3 ) {
+    else if (wavePeak == true && list[i][1] - list[i+1][1] >= 3 ) {
       indexOfSharpDecelerated++;
       wavePeak = false;
     }
@@ -93,10 +107,20 @@ int getSharpDecelerated(List<int> braking,List<dynamic> list) {
     if (list[i][1] - list[i+1][1] >= braking[4]) {level5++;}
     else if (list[i][1] - list[i+1][1] >= braking[3]) {level4++;}
     else if (list[i][1] - list[i+1][1] >= braking[2]) {level3++;}
-    else if (list[i][1] - list[i+1][1]  >= braking[1]) {level2++;}
-    else if (list[i][1] - list[i+1][1]  >= braking[0]) {level1++;}
+    else if (list[i][1] - list[i+1][1] >= braking[1]) {level2++;}
+    else if (list[i][1] - list[i+1][1] >= braking[0]) {level1++;}
   }
-  var deduction= (((level1 + (level2 * 2) + (level3 * 3) + (level4 * 4) + (level5 * 5)) / (indexOfSharpDecelerated * 3)) * 100) /2;
+
+  var adjustment = indexOfSharpDecelerated / 100;
+  var mistakes = level1 + (level2 * 2) + (level3 * 3) + (level4 * 4) + (level5 * 5);
+  print("Accelerating part");
+  print("indexOfSharpDecelerated : $indexOfSharpDecelerated");
+  print("adjustment : $adjustment");
+  print("mistakes : $mistakes");
+
+  var deduction= ((mistakes * adjustment) / indexOfSharpDecelerated) * 100;
+  deduction = deduction * 3;
+  print("deduction : $deduction");
   return deduction.toInt();
 }
 
@@ -172,3 +196,96 @@ String getEvaluate(int drivingScore) {
   }
 }
 
+Future<List<double>> getRating(AlgorithmJson json, List<dynamic> list) async {
+
+  List<double> output = [0,0,0];
+
+  Map<String, dynamic> rule = {};
+  List<int> speeding = [];
+  List<int> braking = [];
+  List<int> accelerating = [];
+  for (var i = 0; i < json.speeding.length; i++) {
+    speeding.add(json.speeding[i].toInt());
+  }
+  for (var i = 0; i < json.braking.length; i++) {
+    braking.add(json.braking[i].toInt());
+  }
+  for (var i = 0; i < json.accelerating.length; i++) {
+    accelerating.add(json.accelerating[i].toInt());
+  }
+
+  rule['speeding'] = speeding;
+  rule['braking'] = braking;
+  rule['accelerating'] = accelerating;
+
+  int sharpAccelerated = getSharpAccelerated(rule['accelerating'],list);
+  int sharpDecelerated = getSharpDecelerated(rule['braking'],list);
+  int overSpeed = await getOverSpeeding(rule['speeding'], list);
+
+  double speedingPercent = (50 - overSpeed) / 50;
+  if (speedingPercent < 0) {
+    speedingPercent = 0;
+  }
+
+  double acceleratingPercent = (50 - sharpAccelerated) / 50;
+  if(acceleratingPercent < 0) {
+    acceleratingPercent = 0;
+  }
+
+  double brakingPercent = (50 - sharpDecelerated) / 50;
+  if(brakingPercent < 0) {
+    brakingPercent = 0;
+  }
+
+  output = [speedingPercent,acceleratingPercent,brakingPercent];
+
+  return output;
+}
+
+Future<int> getOverSpeeding(List<int> speeding, List<dynamic> list) async{
+  int result = 0;
+  List<dynamic> motorways = ['M1','M2','M3','M4','M6','M7','M8','M9','M11','M17','M18','M20','M50'];
+  List<dynamic> nationalRoad = ['N1','N2','N3','N4','N5','N6','N7','N8','N9','N10','N11','N12','N13','N14','N15','N16','N17','N18','N19','N20','N21','N22','N23','N24','N25','N26','N27','N28','N29','N30','N31','N32','N33','N40'];
+  int highestSpeed = 0;
+  int index = 0;
+  for(var i = 0; i < list.length; i++) {
+    if (list[i][1] > highestSpeed) {
+      highestSpeed = list[i][1];
+      index = i;
+    }
+  }
+  String postsURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=${list[index][2].latitude},${list[index][2].longitude}&key=AIzaSyAXmckxhSK1pNlZd2YPE0ePkqVeBR5nM74";
+  Response res = await get(Uri.parse(postsURL));
+  if (res.statusCode == 200) {
+    Map<String, dynamic> geocode = jsonDecode(res.body);
+    for (var j = 0; j < geocode['results'].length; j++) {
+      var address = geocode['results'][j]['address_components'][0]['short_name'].toString();
+      if(motorways.contains(address)) {
+        if ((list[index][1] * (100 / 120)) - 100 >= speeding[4]) { result += 50;}
+        else if ((list[index][1] * (100 / 120)) - 100 >= speeding[3]) { result += 30;}
+        else if ((list[index][1] * (100 / 120)) - 100 >= speeding[2]) { result += 15;}
+        else if ((list[index][1] * (100 / 120)) - 100 >= speeding[1]) { result += 10;}
+        else if ((list[index][1] * (100 / 120)) - 100 >= speeding[0] ) { result += 5;}
+        break;
+      }
+      else if(nationalRoad.contains(address)) {
+        if ((list[index][1] * (100 / 100)) - 100 >= speeding[4]) { result += 50;}
+        else if ((list[index][1] * (100 / 100)) - 100 >= speeding[3]) { result += 30;}
+        else if ((list[index][1] * (100 / 100)) - 100 >= speeding[2]) { result += 15;}
+        else if ((list[index][1] * (100 / 100)) - 100 >= speeding[1]) { result += 10;}
+        else if ((list[index][1] * (100 / 100)) - 100 >= speeding[0]) { result += 5;}
+        break;
+      }
+      else {
+        if ((list[index][1] * (100 / 50)) - 100 >= speeding[4]) { result += 50;}
+        else if ((list[index][1] * (100 / 50)) - 100 >= speeding[3]) { result += 30;}
+        else if ((list[index][1] * (100 / 50)) - 100 >= speeding[2]) { result += 15;}
+        else if ((list[index][1] * (100 / 50)) - 100 >= speeding[1]) { result += 10;}
+        else if ((list[index][1] * (100 / 50)) - 100 >= speeding[0]) { result += 5;}
+        break;
+      }
+    }
+  }
+  else { throw "Unable to retrieve posts.";}
+  return result;
+}

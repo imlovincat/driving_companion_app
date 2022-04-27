@@ -1,10 +1,12 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_session_manager/flutter_session_manager.dart';
+import 'package:percent_indicator/percent_indicator.dart';
+import 'algorithmJson.dart';
 import 'drivingScore.dart';
 import 'route.dart';
 import 'review.dart';
@@ -23,7 +25,15 @@ class ResultState extends State<Result> {
   final PageController _pageController = PageController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   CollectionReference journeys = FirebaseFirestore.instance.collection('journeys');
-  List<dynamic> list = [];
+  late List<dynamic> list = [];
+  String groupName = 'default';
+  int drivingScore = 0;
+  Color ring = Colors.black;
+
+  getJson() async{
+    AlgorithmJson json = AlgorithmJson.fromJson(await SessionManager().get('scoring'));
+    return json;
+  }
 
   @override
   void initState() {
@@ -32,8 +42,32 @@ class ResultState extends State<Result> {
     if (widget.mode == "monitor") {
       addRecord(list);
     }
-  }
+    getJson().then((json) => setState(() {
+      getDrivingScore(json,list).then((val) => setState(() {
+        drivingScore = val;
+        if (drivingScore >= 90) {
+          ring = Colors.blueAccent;
+        }
+        else if (drivingScore >= 80) {
+          ring = Colors.green;
+        }
+        else if (drivingScore >= 70) {
+          ring = Colors.lightGreen;
+        }
+        else if (drivingScore >= 60) {
+          ring = Colors.yellow;
+        }
+        else if (drivingScore >= 50) {
+          ring = Colors.orange;
+        }
+        else {
+          ring = Colors.red;
+        }
 
+
+      }));
+    }));
+  }
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -45,7 +79,7 @@ class ResultState extends State<Result> {
               appBar: PreferredSize(
                   preferredSize: Size(double.infinity, 60),
                   child: AppBar(
-                    title: Text('Driving Report'),
+                    title: Text('Driving Score'),
                     centerTitle: true,
                     backgroundColor: Colors.black,
                     //leading: Icon(Icons.account_circle_rounded),
@@ -70,202 +104,75 @@ class ResultState extends State<Result> {
                     elevation: 0, //remove shadow effect
                   )
               ),
-              body: PageView(
-                controller: _pageController,
-                children: <Widget>[
-                  //page1: Driving Score
-                  Center(
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            "Driving Score",
-                            style: TextStyle(color: Colors.black, fontSize: 18),
-                          ),
-                          Text(
-                            getDrivingScore(list).toString(),
-                            style: TextStyle(color: Colors.black, fontSize: 100),
-                          ),
-                          Text(
-                            getEvaluate(getDrivingScore(list)),
-                            style: TextStyle(color: Colors.black, fontSize: 30),
-                          ),
-                          SizedBox(
-                            height:30
-                          ),
-                          Text(
-                            "Duration: ${list.last[0]}",
-                            style: TextStyle(color: Colors.black, fontSize: 16),
-                          ),
-                          Text(
-                            "Distance: ${getTripDistance(list)} meters",
-                            style: TextStyle(color: Colors.black, fontSize: 16),
-                          ),
-                          SizedBox(
-                            width: 10
-                          ),
-                          Text(
-                            "Comment",
-                              style: TextStyle(color: Colors.black, fontSize: 18),
-                          ),
-                          Text(
-                              "talk something ",
-                              style: TextStyle(color: Colors.black, fontSize: 12),
-                          ),
-                          SizedBox(
-                              width: 30
-                          ),
-                          RaisedButton.icon(
-                            icon: Icon(Icons.play_arrow),
-                            label: Text('Next'),
-                            textColor: Colors.grey,
+              body: Center(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      SizedBox (
+                        height: 30,
+                      ),
+                      CircularPercentIndicator(
+                        radius: 140.0,
+                        lineWidth: 13.0,
+                        animation: true,
+                        //percent: 0.7,
+                        percent: drivingScore / 100,
+                        center: Text(
+                          drivingScore.toString(),
+                          style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 120.0),
+                        ),
+                        /*footer: Text(
+                              "Sales this week",
+                              style:
+                              TextStyle(fontWeight: FontWeight.bold, fontSize: 17.0),
+                            ),*/
+                        circularStrokeCap: CircularStrokeCap.round,
+                        progressColor: ring,
+                      ),
+                      SizedBox(
+                          height:30
+                      ),
+                      Text(
+                        getEvaluate(drivingScore),
+                        style: TextStyle(color: Colors.black, fontSize: 50),
+                      ),
+                      SizedBox(
+                          height:30
+                      ),
+                      Text(
+                        "Duration: ${list.last[0]}\n\nDistance: ${getTripDistance(list)} meters",
+                        style: TextStyle(color: Colors.black, fontSize: 16),
+                      ),
+                      SizedBox(
+                          height: 60
+                      ),
+                      SizedBox(
+                        width: 160,
+                        height: 50,
+                        child: RaisedButton.icon(
+                            icon: Icon(Icons.map),
+                            color: Colors.green,
+                            label: Text(
+                              'Details',
+                              style: TextStyle(color: Colors.black, fontSize: 22),
+                            ),
+                            //textColor: Colors.grey,
                             onPressed:() {
-                              if (_pageController.hasClients) {
-                                _pageController.animateToPage(
-                                  1,
-                                  duration: const Duration(milliseconds: 400),
-                                  curve: Curves.easeInOut,
-                                );
-                              }
-
+                              Navigator.push(
+                                  context, MaterialPageRoute(
+                                  builder: (context) => RoutePage(widget.mode,list)
+                              ));
                             }
-                          ),
-                        ]
-                    ),
-                  ),
-                  //Page2: Details
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Container(
-                          padding: EdgeInsets.all(10),
-                          width: 320,
-                          height: 200,
-                          color: Color.fromARGB(255, 151, 195, 220),
-                          child: LineChart(LineChartData(
-
-                            //minX: 0,
-                            //minY: 0,
-                            //maxX: x_axis,
-                            //maxY: y_axis,
-
-                              borderData: FlBorderData(show: false),
-
-                              titlesData: FlTitlesData(
-                                topTitles: SideTitles(
-                                  showTitles: false,
-                                ),
-                                rightTitles: SideTitles(
-                                  showTitles: false,
-                                ),
-                                leftTitles: SideTitles(
-                                  showTitles: false,
-                                  //interval: 5,
-                                ),
-                                bottomTitles: SideTitles(
-                                  showTitles: false,
-                                  //interval: 5,
-                                ),
-
-                              ),
-
-                              axisTitleData: FlAxisTitleData(
-                                  leftTitle: AxisTitle(
-                                      showTitle: true,
-                                      titleText: 'Speed (km/h)',
-                                      margin: 10
-                                  ),
-                                  bottomTitle: AxisTitle(
-                                    showTitle: true,
-                                    margin: 10,
-                                    titleText: 'Time (Seconds)',
-                                  )
-                              ),
-
-                              gridData: FlGridData(
-                                show: false,
-                              ),
-
-                              lineBarsData: [
-                                LineChartBarData(
-                                    isCurved: true,
-                                    dotData: FlDotData(
-                                      show: false,
-                                    ),
-                                    spots: getLineChartValue(list)
-                                )
-                              ]
-                          ),
-                          ),
                         ),
-                        Text(
-                          "Max Speed: ${getMaxSpeed(list)} kph",
-                          style: TextStyle(color: Colors.black, fontSize: 16),
-                        ),
-                        Text(
-                          "Avg Speed: ${getAvgSpeed(list)} kph",
-                          style: TextStyle(color: Colors.black, fontSize: 16),
-                        ),
-                        Text(
-                          "Acceleration: ",
-                          style: TextStyle(color: Colors.black, fontSize: 16),
-                        ),
-                        Text(
-                          "Braking: ",
-                          style: TextStyle(color: Colors.black, fontSize: 16),
-                        ),
-                        Text(
-                          "Over speed: ",
-                          style: TextStyle(color: Colors.black, fontSize: 16),
-                        ),
-                        SizedBox(
-                          height:20
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: <Widget>[
-                            RaisedButton.icon(
-                                icon: Icon(Icons.menu),
-                                label: Text('Quit'),
-                                textColor: Colors.grey,
-                                onPressed:() {
-                                  if (widget.mode == "monitor") {
-                                    Navigator.push(
-                                        context, MaterialPageRoute(
-                                        builder: (context) => Menu()
-                                    ));
-                                  }
-                                  else if (widget.mode == "review") {
-                                    Navigator.push(
-                                        context, MaterialPageRoute(
-                                        builder: (context) => Review()
-                                    ));
-                                  }
-                                }
-                            ),
-                            SizedBox(width:50),
-                            RaisedButton.icon(
-                                icon: Icon(Icons.map),
-                                label: Text("Map"),
-                                textColor: Colors.grey,
-                                onPressed:() {
-                                  Navigator.push(
-                                      context, MaterialPageRoute(
-                                      builder: (context) => RoutePage(widget.mode,list)
-                                  ));
-                                }
-                            ),
-                          ],
-                        ),
-                      ]
-                    )
-                  ),
-                ],
-              )
+                      ),
+                      SizedBox(
+                          height: 60
+                      ),
+                    ]
+                ),
+              ),
           ),
         ));
   }

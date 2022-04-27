@@ -48,7 +48,7 @@ class SetAlgorithmState extends State<SetAlgorithm> {
               appBar: PreferredSize(
                   preferredSize: Size(double.infinity, 60),
                   child: AppBar(
-                    title: Text('Scoring Setup'),
+                    title: Text('Algorithm Setup'),
                     centerTitle: true,
                     backgroundColor: Colors.black,
                     //leading: Icon(Icons.account_circle_rounded),
@@ -80,9 +80,18 @@ class SetAlgorithmState extends State<SetAlgorithm> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
-                      Text(
-                        "Scoring Method",
-                        style: TextStyle(color: Colors.black, fontSize: 20),
+                      SizedBox(
+                          height:20
+                      ),
+                      Container(
+                        width: 200,
+                        height: 200,
+                        child: Image.asset(
+                          'assets/images/edit_list.png',
+                        ),
+                      ),
+                      SizedBox(
+                          height:30
                       ),
                       Text(
                         "${widget.algorithm}",
@@ -91,55 +100,105 @@ class SetAlgorithmState extends State<SetAlgorithm> {
                       SizedBox(
                           height:20
                       ),
-                      TextFormField(
-                        controller: _speedingController,
-                        decoration: const InputDecoration(labelText: 'Speeding : '),
-                        validator: (String? value) {
-                          if (value!.isEmpty) {
-                            return 'Format: [1,2,3,4,5]';}
-                          else if (json.decode(value).length != 5) {
-                            return 'Format: [1,2,3,4,6]';
+                      SizedBox(
+                        width:250,
+                        child: TextFormField(
+                          controller: _speedingController,
+                          decoration: const InputDecoration(
+                              labelText: 'Speeding : ',
+                              contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+                              border: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.black)
+                              )
+                          ),
+                          style: TextStyle(fontWeight: FontWeight.normal, fontSize: 20, color: Colors.black),
 
-                          }
-                          else {
-                            return null;
-                          }
-                        },
-                      ),
-                      TextFormField (
-                        controller: _acceleratingController,
-                        decoration: const InputDecoration(labelText: 'Accelerating : '),
-                        validator: (String? value) {
-                          if (value!.isEmpty) return 'Please enter some text';
-                          return null;
-                        },
-                      ),
-                      TextFormField(
-                        controller: _brakingController,
-                        decoration: const InputDecoration(labelText: 'Braking: '),
-                        validator: (String? value) {
-                          if (value!.isEmpty) return 'Please enter some text';
-                          return null;
-                        },
+                          validator: (String? value) {
+                            if (value!.isEmpty || json.decode(value).length != 5) {
+                              return 'List Format: [1,2,3,4,5]';
+                            }
+                            else {
+                              return null;
+                            }
+                          },
+                        ),
                       ),
                       SizedBox(
-                          height:50
+                          height:20
                       ),
-                      ElevatedButton(
-                        onPressed: () async {
-                          var method = widget.algorithm;
-                          var speeding = json.decode(_speedingController.text);
-                          var accelerating = json.decode(_acceleratingController.text);
-                          var braking = json.decode(_brakingController.text);
+                      SizedBox(
+                        width:250,
+                        child: TextFormField(
+                          controller: _acceleratingController,
+                          decoration: const InputDecoration(
+                              labelText: 'Accelerating : ',
+                              contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+                              border: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.black)
+                              )
+                          ),
+                          style: TextStyle(fontWeight: FontWeight.normal, fontSize: 20, color: Colors.black),
+                          validator: (String? value) {
+                            if (value!.isEmpty || json.decode(value).length != 5) {
+                              return 'List Format: [1,2,3,4,5]';
+                            }
+                            else {
+                              return null;
+                            }
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                          height:20
+                      ),
+                      SizedBox(
+                        width:250,
+                        child: TextFormField(
+                          controller: _brakingController,
+                          decoration: const InputDecoration(
+                              labelText: 'Braking : ',
+                              contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+                              border: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.black)
+                              )
+                          ),
+                          style: TextStyle(fontWeight: FontWeight.normal, fontSize: 20, color: Colors.black),
+                          validator: (String? value) {
+                            if (value!.isEmpty || json.decode(value).length != 5) {
+                              return 'List Format: [1,2,3,4,5]';
+                            }
+                            else {
+                              return null;
+                            }
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                          height:30
+                      ),
+                      SizedBox(
+                        width: 200,
+                        height: 80,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            var method = widget.algorithm;
+                            var speeding = json.decode(_speedingController.text);
+                            var accelerating = json.decode(_acceleratingController.text);
+                            var braking = json.decode(_brakingController.text);
 
-                          /*if (_formKey.currentState!.validate()) {
+                            /*if (_formKey.currentState!.validate()) {
                             await saveData(method,speeding,accelerating,braking);
                           }*/
-                        },
-                        child: const Text('Submit'),
+                          },
+                          child: const Text(
+                              'Submit',
+                              style: TextStyle(color: Colors.white, fontSize: 30),
+                          ),
+                        ),
                       ),
-
-
+                      SizedBox(
+                          height:30
+                      ),
                     ] ,
                   ),
                 ),

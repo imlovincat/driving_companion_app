@@ -21,10 +21,11 @@ class _Ranking extends State<Ranking> {
 
   @override
   void initState() {
-    getData().then((val) => setState(() {
-      var list = val;
-      getUser(list).then((val) => setState(() {
-        scoreList = val;
+    getData().then((list) => setState(() {
+      print("list: $list");
+      getUser(list).then((name) => setState(() {
+        scoreList = name;
+        print(scoreList);
       }));
     }));
 
@@ -57,88 +58,109 @@ class _Ranking extends State<Ranking> {
                     elevation: 0, //remove shadow effect
                   )
               ),
-              body: ListView.builder(
-                shrinkWrap:true,
-                itemCount: scoreList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  Color rank = Colors.white;
-                  Color edge = Colors.grey;
-                  if (index == 0) {
-                    rank = Colors.amber;
-                    edge = Colors.amber;
-                  }
-                  else if (index == 1) {
-                    rank =  Color.fromARGB(255, 121, 121, 121);
-                    edge =  Color.fromARGB(255, 121, 121, 121);
-                  }
-                  else if (index == 2) {
-                    rank =  Color.fromARGB(255, 130, 116, 89);
-                    edge =  Color.fromARGB(255, 130, 116, 89);
-                  }
+              body: Center(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
 
-                  return Container(
-                    color: Colors.white,
-                    margin: EdgeInsets.all(5),
-                    padding: EdgeInsets.all(5),
-                    alignment: Alignment.center,
-                    child: Row(
-                      children: [
-                        SizedBox(
-                            width: 20
+                    children: <Widget>[
+                      SizedBox(
+                          height:30
+                      ),
+                      Container(
+                        width: 200,
+                        height: 120,
+                        child: Image.asset(
+                          'assets/images/trophy.png',
                         ),
-                        Container(
-                            width: 50,
-                            height: 50,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                                color: rank,
-                                border: Border.all(
-                                  color: edge,
-                                ),
-                                borderRadius: BorderRadius.all(Radius.circular(100))
-                            ),
-                            child: Text(
-                                "${index+1}",
-                                //scoreList[index].toString(),
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize:28,
+                      ),
+                      SizedBox(
+                          height:30
+                      ),
+                      Expanded(child: ListView.builder(
+                        //physics: ClampingScrollPhysics(),
+                          shrinkWrap:true,
+                          itemCount: scoreList.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            Color rank = Colors.white;
+                            Color edge = Colors.grey;
+                            if (index == 0) {
+                              rank = Colors.amber;
+                              edge = Colors.amber;
+                            }
+                            else if (index == 1) {
+                              rank =  Color.fromARGB(255, 121, 121, 121);
+                              edge =  Color.fromARGB(255, 121, 121, 121);
+                            }
+                            else if (index == 2) {
+                              rank =  Color.fromARGB(255, 130, 116, 89);
+                              edge =  Color.fromARGB(255, 130, 116, 89);
+                            }
+                            return Container(
+                                color: Colors.white,
+                                margin: EdgeInsets.all(5),
+                                padding: EdgeInsets.all(5),
+                                alignment: Alignment.center,
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                        width: 20
+                                    ),
+                                    Container(
+                                      width: 50,
+                                      height: 50,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                          color: rank,
+                                          border: Border.all(
+                                            color: edge,
+                                          ),
+                                          borderRadius: BorderRadius.all(Radius.circular(100))
+                                      ),
+                                      child: Text(
+                                          "${index+1}",
+                                          //scoreList[index].toString(),
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize:28,
+                                          )
+                                      ),
+                                    ),
+                                    SizedBox(
+                                        width: 30
+                                    ),
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                            scoreList[index][0].toString(),
+                                            //scoreList[index].toString(),
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize:22,
+                                            )
+                                        ),
+                                        Text(
+                                            "Score: ${scoreList[index][1]} | ${scoreList[index][2]}  | ${scoreList[index][3]} meters",
+                                            //scoreList[index].toString(),
+                                            style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize:14,
+                                            )
+                                        ),
+
+                                      ],
+                                    ),
+                                  ],
                                 )
-                            ),
-                        ),
-                        SizedBox(
-                          width: 30
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                                scoreList[index][0].toString(),
-                                //scoreList[index].toString(),
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize:22,
-                                )
-                            ),
-                            Text(
-                                "Score: ${scoreList[index][1]} | ${scoreList[index][2]}  | ${scoreList[index][3]} meters",
-                                //scoreList[index].toString(),
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize:14,
-                                )
-                            ),
+                            );
+                          }
+                      ))
+                    ]
+                ),
 
-                          ],
-                        ),
-
-
-                      ],
-
-                    )
-                  );
-                }
               )
           ),
         )
@@ -151,6 +173,7 @@ class _Ranking extends State<Ranking> {
 
     await FirebaseFirestore.instance
         .collection('journeys')
+        .limit(100)
         .get()
         .then((QuerySnapshot querySnapshot) {
       querySnapshot.docs.forEach((doc) async{
@@ -171,7 +194,6 @@ class _Ranking extends State<Ranking> {
         duration = transformSeconds(second);
         distance = getTripDistance(list);
 
-
         if (dataList.length == 0) {
           dataList.add([username,score,duration,distance]);
         }
@@ -190,7 +212,7 @@ class _Ranking extends State<Ranking> {
         }
       });
     });
-    return dataList;
+    return Future.delayed(Duration(seconds: 2), () =>dataList);
   }
 
   Future <List<dynamic>> getUser(List<dynamic> list) async {

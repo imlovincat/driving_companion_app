@@ -15,7 +15,7 @@ class SettingAdmin extends StatefulWidget {
 
 class _SettingAdminState extends State<SettingAdmin> {
 
-  String dropdownValue = 'Experience';
+  String dropdownValue = '';
   late List<DropdownMenuItem<String>> dropdownMenu = [];
 
   @override
@@ -40,7 +40,7 @@ class _SettingAdminState extends State<SettingAdmin> {
                 appBar: PreferredSize(
                     preferredSize: Size(double.infinity, 60),
                     child: AppBar(
-                      title: Text('Admin Setting'),
+                      title: Text('SCORING METHOD'),
                       centerTitle: true,
                       backgroundColor: Colors.black,
                       leading: IconButton(
@@ -79,11 +79,24 @@ class _SettingAdminState extends State<SettingAdmin> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: <Widget>[
                               SizedBox(
-                                  height:20
+                                  height:60
+                              ),
+                              Container(
+                                width: 250,
+                                height: 250,
+                                child: Image.asset(
+                                  'assets/images/scoring.png',
+                                ),
+                              ),
+                              SizedBox(
+                                  height:60
                               ),
                               Text(
-                                "SCORING METHOD",
-                                style: TextStyle(color: Colors.black, fontSize: 24),
+                                "Difficulty Level",
+                                style: TextStyle(color: Colors.grey, fontSize: 30),
+                              ),
+                              SizedBox(
+                                  height:20
                               ),
                               Container(
                                 color: Colors.white,
@@ -110,47 +123,71 @@ class _SettingAdminState extends State<SettingAdmin> {
                                 ),
                               ),
                               SizedBox(
-                                  height:40
+                                  height:60
                               ),
                               Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  RaisedButton.icon(
-                                      icon: Icon(Icons.arrow_back_ios),
-                                      label: Text('Save'),
-                                      textColor: Colors.grey,
-                                      onPressed:() {
-                                        setScoringMethod(dropdownValue);
-                                        setSession(dropdownValue);
-                                        Navigator.push(
-                                            context, MaterialPageRoute(
-                                            builder: (context) => Menu()
-                                        )
-                                        );
-                                      }
+                                  SizedBox(
+                                      width:50
                                   ),
                                   SizedBox(
-                                      width:20
+                                    width: 120,
+                                    height: 50,
+                                    child: RaisedButton.icon(
+                                        icon: Icon(Icons.save_alt),
+                                        color: Colors.green,
+                                        label: Text(
+                                          'Save',
+                                          style: TextStyle(color: Colors.black, fontSize: 22),
+                                        ),
+                                        //textColor: Colors.grey,
+                                        onPressed:() {
+                                          setScoringMethod(dropdownValue);
+                                          setSession(dropdownValue);
+                                          Navigator.push(
+                                              context, MaterialPageRoute(
+                                              builder: (context) => Menu()
+                                          )
+                                          );
+                                        }
+                                    ),
                                   ),
-                                  RaisedButton.icon(
-                                      icon: Icon(Icons.arrow_back_ios),
-                                      label: Text('Edit'),
-                                      textColor: Colors.grey,
-                                      onPressed:() async{
-                                        setScoringMethod(dropdownValue);
-                                        setSession(dropdownValue);
-                                        Map<String, dynamic> list = await getData(dropdownValue);
-                                        Navigator.push(
-                                            context, MaterialPageRoute(
-                                            builder: (context) => SetAlgorithm(dropdownValue,list)
-                                        )
-                                        );
-                                      }
+                                  SizedBox(
+                                      width:10
+                                  ),
+                                  SizedBox(
+                                    width: 120,
+                                    height: 50,
+                                    child: RaisedButton.icon(
+                                        icon: Icon(Icons.edit),
+                                        color: Colors.red,
+                                        label: Text(
+                                          'Edit',
+                                          style: TextStyle(color: Colors.black, fontSize: 22),
+                                        ),
+                                        //textColor: Colors.grey,
+                                        onPressed:() async{
+                                          setScoringMethod(dropdownValue);
+                                          setSession(dropdownValue);
+                                          Map<String, dynamic> list = await getData(dropdownValue);
+                                          Navigator.push(
+                                              context, MaterialPageRoute(
+                                              builder: (context) => SetAlgorithm(dropdownValue,list)
+                                          )
+                                          );
+                                        }
+                                    ),
+                                  ),
+                                  SizedBox(
+                                      width:50
                                   ),
                                 ],
                               ),
 
                               SizedBox(
-                                  height:20
+                                  height:100
                               ),
                             ]
                         )
@@ -159,6 +196,10 @@ class _SettingAdminState extends State<SettingAdmin> {
             )
         )
     );
+  }
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   String userUID() {
@@ -211,6 +252,8 @@ class _SettingAdminState extends State<SettingAdmin> {
       AlgorithmJson scoring = AlgorithmJson(speeding,braking,accelerating);
       await SessionManager().remove('scoring');
       await SessionManager().set('scoring',scoring);
+      await SessionManager().remove('algorithm');
+      await SessionManager().set('algorithm',dropdownValue);
     }
   }
 
