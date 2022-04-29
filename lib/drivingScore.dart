@@ -1,3 +1,9 @@
+/**
+ * Institue of Technology Carlow
+ * Software Development Final Year Project
+ * Student Chi Ieong Ng C00223421
+ */
+
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
@@ -58,8 +64,8 @@ int getSharpAccelerated(List<int> accelerating,List<dynamic> list) {
   for (var i = 0; i < list.length -1; i++) {
 
     //speed wave peak
-    if (wavePeak == false && list[i][1] - list[i+1][1] >=2 ) {wavePeak = true;}
-    else if (wavePeak == true && list[i+1][1] - list[i][1] >= 2 ) {
+    if (wavePeak == false && list[i][1] - list[i+1][1] >= 1 ) {wavePeak = true;}
+    else if (wavePeak == true && list[i+1][1] - list[i][1] >= 1 ) {
       indexOfSharpAccelerated++;
       wavePeak = false;
     }
@@ -71,14 +77,9 @@ int getSharpAccelerated(List<int> accelerating,List<dynamic> list) {
     else if (list[i+1][1] - list[i][1] >= accelerating[0]) {level1++;}
   }
 
-  var adjustment = indexOfSharpAccelerated / 100;
+  var indice = 100 /indexOfSharpAccelerated;
   var mistakes = level1 + (level2 * 2) + (level3 * 3) + (level4 * 4) + (level5 * 5);
-  print("Decelerating part");
-  print("indexOfSharpAccelerated : $indexOfSharpAccelerated");
-  print("adjustment : $adjustment");
-  print("mistakes : $mistakes");
-  var deduction= ((mistakes * adjustment) / indexOfSharpAccelerated) * 100;
-  print("deduction : $deduction");
+  var deduction= (mistakes * indice) / 2;
   return deduction.toInt();
 }
 
@@ -95,10 +96,10 @@ int getSharpDecelerated(List<int> braking,List<dynamic> list) {
   for (var i = 0; i < list.length -1; i++) {
 
     //speed wave peak
-    if (wavePeak == false && list[i+1][1] - list[i][1] >=3 ) {
+    if (wavePeak == false && list[i+1][1] - list[i][1] >= 1 ) {
       wavePeak = true;
     }
-    else if (wavePeak == true && list[i][1] - list[i+1][1] >= 3 ) {
+    else if (wavePeak == true && list[i][1] - list[i+1][1] >= 1 ) {
       indexOfSharpDecelerated++;
       wavePeak = false;
     }
@@ -110,15 +111,9 @@ int getSharpDecelerated(List<int> braking,List<dynamic> list) {
     else if (list[i][1] - list[i+1][1] >= braking[0]) {level1++;}
   }
 
-  var adjustment = indexOfSharpDecelerated / 100;
+  var indice = 100 / indexOfSharpDecelerated;
   var mistakes = level1 + (level2 * 2) + (level3 * 3) + (level4 * 4) + (level5 * 5);
-  print("Accelerating part");
-  print("indexOfSharpDecelerated : $indexOfSharpDecelerated");
-  print("adjustment : $adjustment");
-  print("mistakes : $mistakes");
-
-  var deduction= ((mistakes * adjustment) / indexOfSharpDecelerated) * 100;
-  print("deduction : $deduction");
+  var deduction= (mistakes * indice) / 2;
   return deduction.toInt();
 }
 
@@ -244,6 +239,7 @@ Future<int> getOverSpeeding(List<int> speeding, List<dynamic> list) async{
   int result = 0;
   List<dynamic> motorways = ['M1','M2','M3','M4','M6','M7','M8','M9','M11','M17','M18','M20','M50'];
   List<dynamic> nationalRoad = ['N1','N2','N3','N4','N5','N6','N7','N8','N9','N10','N11','N12','N13','N14','N15','N16','N17','N18','N19','N20','N21','N22','N23','N24','N25','N26','N27','N28','N29','N30','N31','N32','N33','N40'];
+  List<dynamic> specifiedRoad = ['Green Rd'];
   int highestSpeed = 0;
   int index = 0;
   for(var i = 0; i < list.length; i++) {
@@ -252,12 +248,14 @@ Future<int> getOverSpeeding(List<int> speeding, List<dynamic> list) async{
       index = i;
     }
   }
-  String postsURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=${list[index][2].latitude},${list[index][2].longitude}&key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+  String postsURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=${list[index][2].latitude},${list[index][2].longitude}&key=AIzaSyAXmckxhSK1pNlZd2YPE0ePkqVeBR5nM74";
   Response res = await get(Uri.parse(postsURL));
   if (res.statusCode == 200) {
     Map<String, dynamic> geocode = jsonDecode(res.body);
     for (var j = 0; j < geocode['results'].length; j++) {
       var address = geocode['results'][j]['address_components'][0]['short_name'].toString();
+      print('address: ${address}');
+      //motorways
       if(motorways.contains(address)) {
         if ((list[index][1] * (100 / 120)) - 100 >= speeding[4]) { result += 50;}
         else if ((list[index][1] * (100 / 120)) - 100 >= speeding[3]) { result += 30;}
@@ -266,6 +264,7 @@ Future<int> getOverSpeeding(List<int> speeding, List<dynamic> list) async{
         else if ((list[index][1] * (100 / 120)) - 100 >= speeding[0] ) { result += 5;}
         break;
       }
+      //rationalRoad
       else if(nationalRoad.contains(address)) {
         if ((list[index][1] * (100 / 100)) - 100 >= speeding[4]) { result += 50;}
         else if ((list[index][1] * (100 / 100)) - 100 >= speeding[3]) { result += 30;}
@@ -274,6 +273,24 @@ Future<int> getOverSpeeding(List<int> speeding, List<dynamic> list) async{
         else if ((list[index][1] * (100 / 100)) - 100 >= speeding[0]) { result += 5;}
         break;
       }
+      //Regional roads
+      else if(address.length == 4 && address[0] == 'R' && double.tryParse(address[1]) != null && double.tryParse(address[2]) != null && double.tryParse(address[3]) != null) {
+        if ((list[index][1] * (100 / 80)) - 100 >= speeding[4]) { result += 50;}
+        else if ((list[index][1] * (100 / 80)) - 100 >= speeding[3]) { result += 30;}
+        else if ((list[index][1] * (100 / 80)) - 100 >= speeding[2]) { result += 15;}
+        else if ((list[index][1] * (100 / 80)) - 100 >= speeding[1]) { result += 10;}
+        else if ((list[index][1] * (100 / 80)) - 100 >= speeding[0]) { result += 5;}
+      }
+      //specificed speed road
+      else if(specifiedRoad.contains(address)) {
+        if ((list[index][1] * (100 / 50)) - 100 >= speeding[4]) { result += 50;}
+        else if ((list[index][1] * (100 / 50)) - 100 >= speeding[3]) { result += 30;}
+        else if ((list[index][1] * (100 / 50)) - 100 >= speeding[2]) { result += 15;}
+        else if ((list[index][1] * (100 / 50)) - 100 >= speeding[1]) { result += 10;}
+        else if ((list[index][1] * (100 / 50)) - 100 >= speeding[0]) { result += 5;}
+        break;
+      }
+      //city max speed
       else {
         if ((list[index][1] * (100 / 50)) - 100 >= speeding[4]) { result += 50;}
         else if ((list[index][1] * (100 / 50)) - 100 >= speeding[3]) { result += 30;}

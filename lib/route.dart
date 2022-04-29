@@ -1,3 +1,9 @@
+/**
+ * Institue of Technology Carlow
+ * Software Development Final Year Project
+ * Student Chi Ieong Ng C00223421
+ */
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -36,8 +42,6 @@ class RouteState extends State<RoutePage> {
   void initState() {
     super.initState();
     list = widget.trip;
-
-
     getJson().then((json) => setState(() {
       rule = getRule(json);
       print("rule: $rule");

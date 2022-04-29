@@ -1,10 +1,15 @@
+/**
+ * Institue of Technology Carlow
+ * Software Development Final Year Project
+ * Student Chi Ieong Ng C00223421
+ */
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_session_manager/flutter_session_manager.dart';
 import 'algorithmJson.dart';
 import 'menu.dart';
-
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -80,11 +85,24 @@ class _SettingState extends State<Setting> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: <Widget>[
                               SizedBox(
-                                  height:20
+                                  height:60
+                              ),
+                              Container(
+                                width: 250,
+                                height: 250,
+                                child: Image.asset(
+                                  'assets/images/scoring.png',
+                                ),
+                              ),
+                              SizedBox(
+                                  height:60
                               ),
                               Text(
-                                "SCORING METHOD",
-                                style: TextStyle(color: Colors.black, fontSize: 24),
+                                "Difficulty Level",
+                                style: TextStyle(color: Colors.grey, fontSize: 30),
+                              ),
+                              SizedBox(
+                                  height:20
                               ),
                               Container(
                                 color: Colors.white,
@@ -93,42 +111,60 @@ class _SettingState extends State<Setting> {
                                 alignment: Alignment.center,
                                 // set width equal to height to make a square
                                 child: DropdownButton<String>(
-                                          value: dropdownValue,
-                                          //elevation: 156,
-                                          style: const TextStyle(color: Colors.black, fontSize: 30),
-                                          //itemHeight: 20,
-                                          iconEnabledColor: Colors.black,
-                                          //focusColor: Colors.purple,
-                                          //dropdownColor: Colors.purple,
-                                          //borderRadius: BorderRadius.all(Radius.circular(20)),
-                                          onChanged: (String? newValue){
-                                            setState(() {
-                                              dropdownValue = newValue!;
-                                              print(newValue);
-                                            });
-                                          },
-                                          items: dropdownMenu
-                                      ),
+                                    value: dropdownValue,
+                                    //elevation: 156,
+                                    style: const TextStyle(color: Colors.black, fontSize: 30),
+                                    //itemHeight: 20,
+                                    iconEnabledColor: Colors.black,
+                                    //focusColor: Colors.purple,
+                                    //dropdownColor: Colors.purple,
+                                    //borderRadius: BorderRadius.all(Radius.circular(20)),
+                                    onChanged: (String? newValue){
+                                      setState(() {
+                                        dropdownValue = newValue!;
+                                        print(newValue);
+                                      });
+                                    },
+                                    items: dropdownMenu
+                                ),
                               ),
                               SizedBox(
-                                  height:40
+                                  height:60
                               ),
-                              RaisedButton.icon(
-                                  icon: Icon(Icons.arrow_back_ios),
-                                  label: Text('Save'),
-                                  textColor: Colors.grey,
-                                  onPressed:() {
-                                    setScoringMethod(dropdownValue);
-                                    setSession(dropdownValue);
-                                    Navigator.push(
-                                        context, MaterialPageRoute(
-                                        builder: (context) => Menu()
-                                    )
-                                    );
-                                  }
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                      width:50
+                                  ),
+                                  SizedBox(
+                                    width: 120,
+                                    height: 50,
+                                    child: RaisedButton.icon(
+                                        icon: Icon(Icons.save_alt),
+                                        color: Colors.green,
+                                        label: Text(
+                                          'Save',
+                                          style: TextStyle(color: Colors.black, fontSize: 22),
+                                        ),
+                                        //textColor: Colors.grey,
+                                        onPressed:() {
+                                          setScoringMethod(dropdownValue);
+                                          setSession(dropdownValue);
+                                          Navigator.push(
+                                              context, MaterialPageRoute(
+                                              builder: (context) => Menu()
+                                          )
+                                          );
+                                        }
+                                    ),
+                                  ),
+                                ],
                               ),
+
                               SizedBox(
-                                  height:20
+                                  height:100
                               ),
                             ]
                         )

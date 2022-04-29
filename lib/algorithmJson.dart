@@ -1,3 +1,9 @@
+/**
+ * Institue of Technology Carlow
+ * Software Development Final Year Project
+ * Student Chi Ieong Ng C00223421
+ */
+
 class AlgorithmJson {
   final List<dynamic> speeding;
   final List<dynamic> braking;

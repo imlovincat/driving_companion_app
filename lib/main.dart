@@ -1,9 +1,16 @@
+/**
+ * Institue of Technology Carlow
+ * Software Development Final Year Project
+ * Student Chi Ieong Ng C00223421
+ */
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 //import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_session_manager/flutter_session_manager.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'menu.dart';
@@ -47,6 +54,7 @@ class _MyState extends State<MyApp> {
 
   @override
   void initState() {
+    checkGPSPermission();
     if (user != null) {
       getUserInfo(getUserUID());
     }
@@ -114,5 +122,20 @@ class _MyState extends State<MyApp> {
     return rule;
   }
 
+  checkGPSPermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+  }
 }
 
